@@ -121,7 +121,7 @@
       <span class="icon"><svg class="icon-stroke" viewBox="0 0 24 24"><path d="M14.531 12.469L3.5 23.5"/><path d="M18.8 8.169a10.985 10.985 0 0 0-3.3-3.669 2.5 2.5 0 0 0-3.5 3.5c1.458 1.034 2.659 2.378 3.5 3.5a2.5 2.5 0 0 0 3.3-3.331z"/></svg></span><span>PICKAXE</span>
     </div>
     <div class="tool-slot" id="slot-4" style="display:none;" onpointerdown="selectTool(4)">
-      <span class="icon"><svg class="icon-stroke" viewBox="0 0 24 24" style="transform: rotate(45deg);"><path d="M22 12h-4l-3-3H7l-3 3H2v-2h2l3-3h8l3 3h4v2zm0 2h-4l-3 3H7l-3-3H2v2h2l3 3h8l3-3h4v-2z" fill="currentColor" stroke="none"/></svg></span><span style="color:#e74c3c">PANZER</span>
+      <span class="icon"><svg viewBox="0 0 24 24"><path d="M3 12h18M18 8l4 4-4 4M7 8l-4 4 4 4"/></svg></span><span style="color:#e74c3c">PANZER</span>
     </div>
   </div>
 
@@ -213,7 +213,7 @@
     function initAudio() { 
         if(!audioCtx) {
             audioCtx = new AudioCtx(); 
-            nextBeatTime = audioCtx.currentTime + 0.1; // 시퀀서 시작 시간 초기화
+            nextBeatTime = audioCtx.currentTime + 0.1; 
         }
         if(audioCtx.state==='suspended') audioCtx.resume(); 
     }
@@ -224,17 +224,14 @@
     function updateDynamicBGM() {
         if (!audioCtx || !isGameStarted || gameState === 'START' || gameState === 'ENDING') return;
         
-        // 탭 이동 등 시간 지연 발생 시 무한 루프 렉(Crash) 방지 동기화
         if (nextBeatTime < audioCtx.currentTime) { nextBeatTime = audioCtx.currentTime + 0.1; }
 
-        // 현재 시간 기준 0.1초 앞까지 미리 비트를 예약 (버벅임 방지)
         while (nextBeatTime < audioCtx.currentTime + 0.1) {
             playBeat(nextBeatTime, beatStep);
             
-            // 상태별 템포(BPM) 조절
-            let beatDur = 1.0; // 기본 벙커 템포
-            if (gameState === 'ATOMIC_WAVE') beatDur = 0.12; // 빠르고 긴박한 템포
-            else if (gameState === 'BOSS') beatDur = 0.35;   // 웅장한 행진곡 템포
+            let beatDur = 1.0; 
+            if (gameState === 'ATOMIC_WAVE') beatDur = 0.12; 
+            else if (gameState === 'BOSS' || gameState === 'SUPER_HARD') beatDur = 0.35; 
             
             nextBeatTime += beatDur; 
             beatStep++;
@@ -249,19 +246,16 @@
         let freq = 40, type = 'sine', vol = 0.1, dur = 0.5;
 
         if (gameState === 'ATOMIC_WAVE') {
-            // [ATOMIC] 긴박한 테크노 아르페지오 (Square Synth)
             type = 'square'; vol = 0.04; dur = 0.1;
             const seq = [220, 220, 440, 220, 330, 220, 440, 220]; 
             freq = seq[step % 8]; 
-            if (step % 8 === 0) vol = 0.06; // 첫 박자 강세
+            if (step % 8 === 0) vol = 0.06; 
         } 
-        else if (gameState === 'BOSS') {
-            // [BOSS] 웅장하고 무거운 행진곡풍 멜로디 & 베이스 드럼
+        else if (gameState === 'BOSS' || gameState === 'SUPER_HARD') {
             type = 'sawtooth'; vol = 0.08; dur = 0.3;
             const seq = [110, 110, 110, 82.41, 130.81, 110, 82.41, 130.81]; 
             freq = seq[step % 8];
             
-            // 행진곡 베이스 킥 드럼 (Synthetic Kick)
             if (step % 2 === 0) {
                 const kick = audioCtx.createOscillator(); 
                 const kGain = audioCtx.createGain();
@@ -274,11 +268,10 @@
             }
         } 
         else { 
-            // [BUNKER] 음산하고 늘어지는 베이스 펄스
             type = 'sawtooth'; vol = 0.1; dur = 0.8; 
             freq = (step % 4 === 0) ? 45 : 40; 
             osc.frequency.setValueAtTime(freq, time); 
-            osc.frequency.exponentialRampToValueAtTime(30, time + dur); // 서서히 음정이 낮아지는 효과
+            osc.frequency.exponentialRampToValueAtTime(30, time + dur);
         }
         
         osc.type = type; 
@@ -325,14 +318,13 @@
     document.getElementById('gas-depth').innerText = `${Math.abs(gasDepthY1)}m 및 ${Math.abs(gasDepthY2)}m`;
     
     let collectedEndings = JSON.parse(localStorage.getItem('myBunkerEndings') || '[]');
-    // Delete legacy ARTIST ending if present in local storage
     if (collectedEndings.includes('ARTIST')) {
         collectedEndings = collectedEndings.filter(e => e !== 'ARTIST');
         localStorage.setItem('myBunkerEndings', JSON.stringify(collectedEndings));
     }
 
     const MAP_SIZE = 40;
-    const MIN_DIG_Y = -67; // -67m 까지 확장
+    const MIN_DIG_Y = -67; 
     let MAX_ENEMIES = 60; 
     const BOSS_START_TIME = 150; 
     let PUNCH_RANGE = 3.5; 
@@ -407,9 +399,9 @@
       'concrete': createRealisticTexture('#2a2a2a', 'grid'), 'passage': createRealisticTexture('#3d221e', 'grid'), 
       'bedrock': createRealisticTexture('#0f0f0f', 'rock'),
       'portal': createRealisticTexture('#1f3a93', 'metal'),
-      'atomic_door': createRealisticTexture('#00ff33', 'metal'), // 형광 그린
-      'uboat': createRealisticTexture('#ff2222', 'metal'),      // 발광 레드
-      'water_rock': createRealisticTexture('#3498db', 'rock')    // 투명 느낌 푸른빛
+      'atomic_door': createRealisticTexture('#00ff33', 'metal'), 
+      'uboat': createRealisticTexture('#ff2222', 'metal'),      
+      'water_rock': createRealisticTexture('#3498db', 'rock')    
     };
     materials.portal.emissive.setHex(0x0055ff); materials.portal.emissiveIntensity = 0.8;
     materials.atomic_door.emissive.setHex(0x00ff44); materials.atomic_door.emissiveIntensity = 1.0;
@@ -433,7 +425,7 @@
       if (voxels.has(key)) return;
       let hp = 2; 
       if (type === 'concrete' || type === 'bedrock' || type === 'portal') hp = 999;
-      if (['atomic_door', 'water_rock', 'uboat'].includes(type)) hp = 10; // 곡괭이 10방 특수 블록
+      if (['atomic_door', 'water_rock', 'uboat'].includes(type)) hp = 10; 
       voxels.set(key, { x: Math.floor(x), y: Math.floor(y), z: Math.floor(z), type, hp, maxHp: hp, mesh: null, key: key });
     }
 
@@ -463,7 +455,6 @@
       const unbreakable = ['bedrock', 'portal', 'uboat'];
       if (unbreakable.includes(v.type)) return false; 
       
-      // 특수 블록은 공습이나 적 AI에 의해 절대 파괴되지 않음 (force 무시)
       const specialTypes = ['atomic_door', 'water_rock'];
       if (force && specialTypes.includes(v.type)) return false; 
       if (!force && v.type === 'concrete') return false; 
@@ -511,9 +502,8 @@
               if (y === 0) addVoxelLogic(x, y, z, 'dirt'); else if (isInteriorWall) addVoxelLogic(x, y, z, 'passage');
             }
             for (let y = -1; y > MIN_DIG_Y; y--) {
-              if (z < -15 && x >= -1 && x <= 1 && y <= MIN_DIG_Y + 2) continue; // ARGENTINA
+              if (z < -15 && x >= -1 && x <= 1 && y <= MIN_DIG_Y + 2) continue; 
               
-              // 특수 히든 구역 3x3은 흙 블록 생성 금지 (동굴 생성)
               const isAtomicZone = Math.abs(x - 17) <= 1 && Math.abs(y - (-26)) <= 1 && Math.abs(z - 17) <= 1;
               const isUboatZone = (x >= -18 && x <= -15) && (y >= -21 && y <= -18) && (z >= 15 && z <= 18);
               if (isAtomicZone || isUboatZone) continue;
@@ -528,11 +518,9 @@
       
       const argentinaLight = new THREE.PointLight(0x0088ff, 4.0, 20); argentinaLight.position.set(0, MIN_DIG_Y + 1.5, -19); scene.add(argentinaLight);
 
-      // ATOMIC 원자로 특수 블록 스폰 (눈에 확 띄게 광원 범위 증가)
       addVoxelLogic(17, -26, 17, 'atomic_door');
       const atomicLight = new THREE.PointLight(0x00ffaa, 6.0, 20); atomicLight.position.set(17, -26, 17); scene.add(atomicLight);
 
-      // U-BOAT 특수 블록 스폰
       addVoxelLogic(-17, -20, 17, 'uboat'); 
       addVoxelLogic(-16, -20, 17, 'water_rock'); addVoxelLogic(-16, -19, 17, 'water_rock');
       addVoxelLogic(-17, -19, 17, 'water_rock'); addVoxelLogic(-16, -20, 16, 'water_rock'); 
@@ -594,9 +582,10 @@
 
     const panzerGroup = new THREE.Group();
     const panzerMat = createRealisticTexture('#2E402D', 'metal');
-    const panzerTube = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.7, 8), panzerMat); panzerTube.rotation.x = Math.PI / 2;
-    const panzerHead = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.04, 0.25, 8), panzerMat); panzerHead.rotation.x = Math.PI / 2; panzerHead.position.set(0, 0, -0.35);
-    panzerGroup.add(panzerTube, panzerHead); panzerGroup.position.set(0.2, -0.2, -0.3); panzerGroup.visible = false; handToolGroup.add(panzerGroup);
+    const panzerTube = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.8, 12), panzerMat); panzerTube.rotation.x = Math.PI / 2;
+    const panzerHead = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.05, 0.3, 12), panzerMat); panzerHead.rotation.x = Math.PI / 2; panzerHead.position.set(0, 0, -0.4);
+    const panzerSight = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.05, 0.01), gunMetal); panzerSight.position.set(0, 0.04, 0);
+    panzerGroup.add(panzerTube, panzerHead, panzerSight); panzerGroup.position.set(0.2, -0.2, -0.3); panzerGroup.visible = false; handToolGroup.add(panzerGroup);
 
     function updateHandModel() { pistolGroup.visible = (player.activeSlot === 1); fistGroup.visible = (player.activeSlot === 2); pickGroup.visible = (player.activeSlot === 3); panzerGroup.visible = (player.activeSlot === 4); }
 
@@ -666,18 +655,17 @@
       if (!isGameStarted || gameState === 'START' || gameState === 'ENDING' || gameState === 'TRANSITION') return;
       const now = Date.now();
       
-      // 일반 모드 속도 1.5배 증가 버프 (0.035 -> 0.055)
-      let enemySpeed = isSuperHard ? 0.8 : (isHardMode ? 0.40 : 0.055); 
+      // 슈퍼 하드 모드: 한계치 스피드(1.2) 및 쿨타임 없음(1ms), 공격력 극너프(0.001)
+      let enemySpeed = isSuperHard ? 1.2 : (isHardMode ? 0.40 : 0.055); 
       let shootCooldown = isSuperHard ? 1 : (isHardMode ? 10 : 2200); 
-      let enemyDamage = isSuperHard ? 5.0 : (isHardMode ? 0.01 : 2);     
-      let digCooldown = isSuperHard ? 10 : (isHardMode ? 100 : 600);
+      let enemyDamage = isSuperHard ? 0.001 : (isHardMode ? 0.01 : 2);     
+      let digCooldown = isSuperHard ? 1 : (isHardMode ? 100 : 600);
 
-      // ATOMIC WAVE(원자로 폭주) 발동 시 적군 10배 광폭화
       if (gameState === 'ATOMIC_WAVE') {
-          enemySpeed = Math.min(enemySpeed * 10, 0.85); // 충돌 방지를 위해 최대 속도 제한
+          enemySpeed = Math.min(enemySpeed * 10, 0.85); 
           shootCooldown = Math.max(1, shootCooldown / 10);
           digCooldown = Math.max(10, digCooldown / 10);
-          enemyDamage = isHardMode ? 0.001 : 0.2; // 공격력은 대폭 감소
+          enemyDamage = isHardMode ? 0.001 : 0.2; 
       }
 
       for (let i = enemies.length - 1; i >= 0; i--) {
@@ -690,9 +678,9 @@
             if(i===j) continue;
             let otherPos = enemies[j].group.position;
             let dx = ePos.x - otherPos.x; let dz = ePos.z - otherPos.z;
-            if(Math.abs(dx) > 0.8 || Math.abs(dz) > 0.8) continue; // 빠른 바운딩 거리 검사로 불필요한 루트 연산 컷
+            if(Math.abs(dx) > 0.8 || Math.abs(dz) > 0.8) continue; 
             let distSq = dx*dx + dz*dz;
-            if(distSq < 0.36) { // 0.6 * 0.6 내에 있으면
+            if(distSq < 0.36) { 
                 let pushX = (dx / Math.sqrt(distSq)) * 0.02; let pushZ = (dz / Math.sqrt(distSq)) * 0.02;
                 let nextX = ePos.x + pushX; let nextZ = ePos.z + pushZ;
                 if (!isSolid(nextX, ePos.y + 0.2, ePos.z) && !isSolid(nextX, ePos.y + 1.2, ePos.z)) ePos.x = nextX;
@@ -700,18 +688,16 @@
             }
         }
 
-        // 플레이어 몸 박스(Hitbox) 안으로 들어오면 강제 밀어내기 (벽 뚫기 방지 적용)
         const true3DDist = ePos.distanceTo(player.pos);
         if(true3DDist < 1.2) {
             let push = ePos.clone().sub(player.pos).normalize().multiplyScalar(0.1);
-            let nextX = ePos.x + push.x;
-            let nextZ = ePos.z + push.z;
+            let nextX = ePos.x + push.x; let nextZ = ePos.z + push.z;
             if (!isSolid(nextX, ePos.y + 0.2, ePos.z) && !isSolid(nextX, ePos.y + 1.2, ePos.z)) ePos.x = nextX;
             if (!isSolid(ePos.x, ePos.y + 0.2, nextZ) && !isSolid(ePos.x, ePos.y + 1.2, nextZ)) ePos.z = nextZ;
         }
 
         const dir = new THREE.Vector3().subVectors(player.pos, ePos); dir.y = 0; const dist = dir.length();
-        let shouldChase = dist > 1.5 || Math.abs(player.pos.y - ePos.y) > 0.5; // 거리가 멀거나 상하 높이가 다르면 쫓음
+        let shouldChase = dist > 1.5 || Math.abs(player.pos.y - ePos.y) > 0.5; 
         let shouldJump = (player.pos.y > ePos.y + 0.5);
 
         if (shouldChase && dist < 30) { 
@@ -737,7 +723,6 @@
               }
           }
 
-          // 벽에 완전히 막히지 않았다면 공중에서도 전진할 수 있도록 XZ 이동 허용 (점프 AI 개선)
           let canMoveX = !isSolid(nextX, ePos.y + 0.2, ePos.z) && !isSolid(nextX, ePos.y + 1.2, ePos.z);
           let canMoveZ = !isSolid(ePos.x, ePos.y + 0.2, nextZ) && !isSolid(ePos.x, ePos.y + 1.2, nextZ);
           if (canMoveX) ePos.x = nextX;
@@ -835,11 +820,11 @@
     }
 
     function updateStalin() {
-      if (!isGameStarted || gameState !== 'BOSS' || !stalin) return;
+      if (!isGameStarted || gameState !== 'BOSS' && gameState !== 'SUPER_HARD' || !stalin) return;
       const now = Date.now(); const sPos = stalin.group.position;
       const dir = new THREE.Vector3().subVectors(player.pos, sPos); dir.y = 0; const dist = dir.length();
       
-      stalin.group.visible = true; // 투명화 버그 방지 강제 렌더링
+      stalin.group.visible = true; 
 
       let currentPhase = stalin.phase;
       if (isHardMode || isSuperHard) {
@@ -858,7 +843,7 @@
 
       let speed = 0.045; let atkCooldown = 1500; let dmg = 8;
       if (isSuperHard) {
-          speed = 0.4; atkCooldown = 200; dmg = 99;
+          speed = 0.8; atkCooldown = 10; dmg = 1; // 슈퍼하드: 속도 초광폭, 데미지 1 
       } else if (isHardMode) {
           if (stalin.phase === 1) speed = 0.08;
           if (stalin.phase === 2) speed = 0.12;
@@ -876,7 +861,7 @@
 
       if (stalin.actionState === 'NORMAL') {
           if (now > stalin.smokeTimer) {
-              stalin.smokeTimer = now + 4000;
+              stalin.smokeTimer = now + (isSuperHard ? 1000 : 4000);
               if (dist < 5.0) { 
                   showToast("[DEBUFF] 짙은 매연! 시야 방해 및 둔화");
                   document.getElementById('vignette').style.background = 'radial-gradient(circle, rgba(50,50,50,0.8) 20%, rgba(0,0,0,0.95) 100%)';
@@ -894,10 +879,10 @@
               let choice = patterns[Math.floor(Math.random() * patterns.length)];
 
               if (choice === 'POUND' && dist < 4.0) {
-                  stalin.actionState = 'POUND_PREP'; stalin.actionTimer = now + 600; 
+                  stalin.actionState = 'POUND_PREP'; stalin.actionTimer = now + (isSuperHard ? 100 : 600); 
                   stalin.rig.armR.rotation.x = -Math.PI; showToast("[BOSS] 지면 강타 준비!");
               } else if (choice === 'CHARGE') {
-                  stalin.actionState = 'CHARGE_PREP'; stalin.actionTimer = now + 1000; 
+                  stalin.actionState = 'CHARGE_PREP'; stalin.actionTimer = now + (isSuperHard ? 100 : 1000); 
                   stalin.chargeDir = dir.clone().normalize();
                   stalin.group.lookAt(player.pos.x, sPos.y, player.pos.z);
                   const endPos = sPos.clone().add(stalin.chargeDir.clone().multiplyScalar(20));
@@ -905,7 +890,7 @@
                   scene.add(stalin.chargeLine);
                   showToast("[BOSS] 227호 명령: 붉은 돌진!");
               } else if (choice === 'KATYUSHA') {
-                  stalin.actionState = 'KATYUSHA_PREP'; stalin.actionTimer = now + 1500; 
+                  stalin.actionState = 'KATYUSHA_PREP'; stalin.actionTimer = now + (isSuperHard ? 200 : 1500); 
                   stalin.rig.armR.rotation.x = -Math.PI; showToast("[BOSS] 카튜샤 폭격 지시!");
                   for(let i=0; i<3; i++) {
                       let mx = Math.floor(player.pos.x + (Math.random()-0.5)*8); let mz = Math.floor(player.pos.z + (Math.random()-0.5)*8);
@@ -915,18 +900,18 @@
                       stalin.katyushaMarkers.push({mesh: marker, x: mx, y: hitY, z: mz});
                   }
               } else if (choice === 'SUMMON') {
-                  stalin.actionState = 'SUMMON_PREP'; stalin.actionTimer = now + 1000;
+                  stalin.actionState = 'SUMMON_PREP'; stalin.actionTimer = now + (isSuperHard ? 100 : 1000);
                   showToast("[BOSS] 정예 친위대 소환!");
               } else if (choice === 'WHIRLWIND') {
                   stalin.actionState = 'WHIRLWIND'; stalin.actionTimer = now + 3500;
                   showToast("[BOSS] 소비에트의 망치와 낫! (피격 데미지 반감)");
               } else if (choice === 'COLLAPSE') {
-                  stalin.actionState = 'COLLAPSE_PREP'; stalin.actionTimer = now + 800;
+                  stalin.actionState = 'COLLAPSE_PREP'; stalin.actionTimer = now + (isSuperHard ? 100 : 800);
                   showToast("[BOSS] 대지 붕괴!");
               } else {
                   stalin.nextPatternTime = now + 500; return; 
               }
-              stalin.nextPatternTime = now + 3500 + Math.random() * 2000; 
+              stalin.nextPatternTime = now + (isSuperHard ? 500 : (3500 + Math.random() * 2000)); 
           }
 
           if (dist > 1.5) {
@@ -956,19 +941,19 @@
           stalin.group.lookAt(player.pos.x, sPos.y, player.pos.z);
           if (now > stalin.actionTimer) {
               stalin.actionState = 'NORMAL'; stalin.rig.armR.rotation.x = 0;
-              sfx.explosion(); damagePlayer(15);
+              sfx.explosion(); damagePlayer(isSuperHard ? 2 : 15);
               applyPlayerKnockback(player.pos.clone().sub(sPos).normalize(), 4.0);
               const cx = Math.floor(sPos.x); const cz = Math.floor(sPos.z); const cy = Math.floor(sPos.y - 1);
               for(let dx=-1; dx<=1; dx++) for(let dz=-1; dz<=1; dz++) removeVoxel(cx+dx, cy, cz+dz, true);
           }
       } else if (stalin.actionState === 'CHARGE_PREP') {
           if (now > stalin.actionTimer) {
-              stalin.actionState = 'CHARGING'; stalin.actionTimer = now + 1200; 
+              stalin.actionState = 'CHARGING'; stalin.actionTimer = now + (isSuperHard ? 400 : 1200); 
               if (stalin.chargeLine) { scene.remove(stalin.chargeLine); stalin.chargeLine.geometry.dispose(); stalin.chargeLine = null; }
           }
       } else if (stalin.actionState === 'CHARGING') {
-          const nextX = sPos.x + stalin.chargeDir.x * (isSuperHard ? 1.0 : 0.5); 
-          const nextZ = sPos.z + stalin.chargeDir.z * (isSuperHard ? 1.0 : 0.5);
+          const nextX = sPos.x + stalin.chargeDir.x * (isSuperHard ? 2.5 : 0.5); // 슈퍼 하드 모드 초고속 돌진
+          const nextZ = sPos.z + stalin.chargeDir.z * (isSuperHard ? 2.5 : 0.5);
           const maxBound = MAP_SIZE / 2 - 2.0;
           
           if(Math.abs(nextX) > maxBound || Math.abs(nextZ) > maxBound) {
@@ -980,7 +965,7 @@
               sPos.x = nextX; sPos.z = nextZ;
     
               if (dist < 3.0) { 
-                  damagePlayer(isSuperHard ? 100 : 25); sfx.punchHit();
+                  damagePlayer(isSuperHard ? 5 : 25); sfx.punchHit();
                   applyPlayerKnockback(stalin.chargeDir.clone(), 5.0);
                   stalin.actionState = 'NORMAL';
               }
@@ -997,7 +982,7 @@
                   expl.position.set(m.x, m.y+1, m.z); scene.add(expl);
                   setTimeout(() => { scene.remove(expl); expl.geometry.dispose(); }, 300);
                   for(let dx=-1; dx<=1; dx++) for(let dz=-1; dz<=1; dz++) for(let y=m.y+1; y>=m.y-2; y--) removeVoxel(m.x+dx, y, m.z+dz, true);
-                  if (Math.hypot(player.pos.x - m.x, player.pos.z - m.z) < 3.0 && Math.abs(player.pos.y - m.y) < 3) damagePlayer(15);
+                  if (Math.hypot(player.pos.x - m.x, player.pos.z - m.z) < 3.0 && Math.abs(player.pos.y - m.y) < 3) damagePlayer(isSuperHard ? 2 : 15);
               });
               stalin.katyushaMarkers = [];
           }
@@ -1009,18 +994,18 @@
               sfx.shoot();
           }
       } else if (stalin.actionState === 'WHIRLWIND') {
-          stalin.group.rotation.y += 0.4; 
+          stalin.group.rotation.y += (isSuperHard ? 1.5 : 0.4); 
           stalin.rig.armL.rotation.z = -Math.PI/2; stalin.rig.armL.rotation.x = 0;
           stalin.rig.armR.rotation.z = Math.PI/2; stalin.rig.armR.rotation.x = 0;
           
           const wwDir = new THREE.Vector3().subVectors(player.pos, sPos); wwDir.y = 0;
-          wwDir.normalize().multiplyScalar(0.20); 
+          wwDir.normalize().multiplyScalar(isSuperHard ? 0.6 : 0.20); 
           const nextX = sPos.x + wwDir.x; const nextZ = sPos.z + wwDir.z;
           if (!isSolid(nextX, sPos.y+0.5, sPos.z)) sPos.x = nextX;
           if (!isSolid(sPos.x, sPos.y+0.5, nextZ)) sPos.z = nextZ;
 
           if (dist < 4.0 && now - stalin.lastAtk > 150) {
-              stalin.lastAtk = now; damagePlayer(15); sfx.punchHit();
+              stalin.lastAtk = now; damagePlayer(isSuperHard ? 2 : 15); sfx.punchHit();
               player.pos.x += wwDir.x * 2.0; player.pos.z += wwDir.z * 2.0;
           }
           if (now > stalin.actionTimer) {
@@ -1121,7 +1106,6 @@
         const px = Math.floor(player.pos.x); const pz = Math.floor(player.pos.z);
         const depthDisplayEl = document.getElementById('depth-display');
 
-        // 폭격 위험 지대 -11m 까지 연장
         if (player.pos.y <= -11) {
           depthDisplayEl.innerText = `X: ${px}, Z: ${pz} | DEPTH: -${currentDepthMeter}m [SAFE]`; depthDisplayEl.style.color = '#2ecc71';
         } else {
@@ -1135,7 +1119,6 @@
             document.getElementById('gas-overlay').style.opacity = '0';
         }
 
-        // 폭격시 -11m 이내에 있으면 데미지
         if (isAirRaidActive && player.pos.y > -11 && realTimeSeconds % 1 === 0) damagePlayer(1); 
       }
     }
@@ -1163,11 +1146,13 @@
       if (player.activeSlot === 1) { 
         if (player.isReloading || player.ammoClip <= 0) { if(player.ammoClip<=0) triggerReload(); return; }
         player.ammoClip--; updateHUD(); sfx.shoot();
-        pistolGroup.children[0].position.z = -0.10; setTimeout(() => pistolGroup.children[0].position.z = -0.15, 80); 
+        
+        pistolGroup.rotation.x = 0.3; pistolGroup.position.z = -0.10;
+        setTimeout(() => { pistolGroup.rotation.x = 0; pistolGroup.position.z = -0.15; }, 80); 
         
         const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(0, 0), camera);
         const hitEnemies = ray.intersectObjects(enemyGroup.children, true); 
-        const hitBoss = (gameState === 'BOSS' && stalin) ? ray.intersectObjects(stalin.group.children, true) : [];
+        const hitBoss = (gameState === 'BOSS' || gameState === 'SUPER_HARD') && stalin ? ray.intersectObjects(stalin.group.children, true) : [];
         const allHits = [...hitEnemies, ...hitBoss].sort((a,b) => a.distance - b.distance);
 
         let lastHitPos = hitWall ? hitWall.point : pMuzzlePos.clone().add(rayDir.clone().multiplyScalar(25));
@@ -1198,9 +1183,9 @@
                         } else {
                             showToast("[HEADSHOT] 치명타 및 중화기 획득!");
                             en.hp -= 150;
-                            player.ammoClip = Math.min(12, player.ammoClip + 3); updateHUD();
+                            player.ammoClip = Math.min(player.ammoClip + 3, 999); updateHUD();
                             if (!hasPanzerfaust) {
-                                hasPanzerfaust = true; panzerHead.visible = true; document.getElementById('slot-4').style.display = 'flex';
+                                hasPanzerfaust = true; panzerGroup.visible = (player.activeSlot === 4); document.getElementById('slot-4').style.display = 'flex';
                                 showToast("🚀 판저파우스트 획득! (4번 슬롯)");
                             }
                         }
@@ -1225,18 +1210,18 @@
         isPunching = true; sfx.punch();
         
         const punchSpeed = 0.5; 
-        fistL.position.z = -0.6; fistL.rotation.x = -0.2; fistL.rotation.z = 0.2; 
-        setTimeout(() => { fistL.position.z = -0.25; fistL.rotation.x = 0; fistL.rotation.z = 0; }, punchSpeed * 100);
+        fistL.position.z = -0.5; fistL.position.y = -0.1; fistL.rotation.x = -0.5; fistL.rotation.z = 0.3; 
+        setTimeout(() => { fistL.position.z = -0.25; fistL.position.y = -0.18; fistL.rotation.x = 0; fistL.rotation.z = 0; }, punchSpeed * 100);
         setTimeout(() => { 
-            fistR.position.z = -0.6; fistR.rotation.x = -0.2; fistR.rotation.z = -0.2;
-            setTimeout(() => { fistR.position.z = -0.25; fistR.rotation.x = 0; fistR.rotation.z = 0; isPunching = false; }, punchSpeed * 100); 
+            fistR.position.z = -0.5; fistR.position.y = -0.1; fistR.rotation.x = -0.5; fistR.rotation.z = -0.3;
+            setTimeout(() => { fistR.position.z = -0.25; fistR.position.y = -0.18; fistR.rotation.x = 0; fistR.rotation.z = 0; isPunching = false; }, punchSpeed * 100); 
         }, punchSpeed * 150);
 
         const punchWall = fastVoxelRaycast(pStart, rayDir, PUNCH_RANGE + 0.8);
         const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(0, 0), camera);
         const hitEnemies = ray.intersectObjects(enemyGroup.children, true); 
         
-        if (gameState === 'BOSS' && stalin) {
+        if ((gameState === 'BOSS' || gameState === 'SUPER_HARD') && stalin) {
            const hitsBoss = ray.intersectObjects(stalin.group.children, true);
            if (hitsBoss.length > 0 && hitsBoss[0].distance < PUNCH_RANGE + 0.8) {
              sfx.punchHit(); stalin.hp -= 50; 
@@ -1288,13 +1273,14 @@
         }
       }
       else if (player.activeSlot === 4 && hasPanzerfaust) {
-        hasPanzerfaust = false; panzerHead.visible = false; document.getElementById('slot-4').style.display = 'none';
+        if(!isSuperHard) {
+            hasPanzerfaust = false; panzerGroup.visible = false; document.getElementById('slot-4').style.display = 'none';
+        }
         
-        // 반동 연출 및 권총으로 자동 전환
         panzerGroup.position.z += 0.2; setTimeout(() => panzerGroup.position.z -= 0.2, 100);
-        setTimeout(() => selectTool(1), 300);
+        if(!isSuperHard) setTimeout(() => selectTool(1), 300);
 
-        selectTool(1); sfx.explosion();
+        sfx.explosion();
         let target = hitWall ? hitWall.point : pMuzzlePos.clone().add(rayDir.clone().multiplyScalar(15));
         
         const expl = new THREE.Mesh(explGeo, new THREE.MeshBasicMaterial({color: 0xff4400, transparent: true, opacity: 0.9}));
@@ -1329,12 +1315,13 @@
       if (!isGameStarted || gameState === 'START' || gameState === 'ENDING' || gameState === 'TRANSITION') return;
       player.hp = Math.max(0, player.hp - amt); player.lastDamageTime = Date.now(); updateHUD();
       const f = document.getElementById('damage-flash'); f.style.opacity = '1'; setTimeout(() => f.style.opacity = '0', 200);
-      if (player.hp <= 0) { if (gameState === 'BOSS') triggerEnding('DEFEAT'); else triggerEnding('DEATH'); }
+      if (player.hp <= 0) { if (gameState === 'BOSS' || gameState === 'SUPER_HARD') triggerEnding('DEFEAT'); else triggerEnding('DEATH'); }
     }
 
     function updateHUD() {
       document.getElementById('hp-num').innerText = Math.floor(player.hp); document.getElementById('hp-bar').style.width = `${player.hp}%`;
-      document.getElementById('ammo-clip').innerText = player.ammoClip; document.getElementById('ammo-reserve').innerText = player.ammoReserve;
+      document.getElementById('ammo-clip').innerText = player.ammoClip > 100 ? "∞" : player.ammoClip; 
+      document.getElementById('ammo-reserve').innerText = player.ammoReserve > 100 ? "∞" : player.ammoReserve;
       
       if(player.hp <= 30 && player.hp > 0) document.getElementById('blood-overlay').classList.add('heartbeat-active');
       else document.getElementById('blood-overlay').classList.remove('heartbeat-active');
@@ -1348,7 +1335,7 @@
     function selectTool(n) { 
       if(!isGameStarted || gameState === 'START' || gameState === 'ENDING') return; 
       
-      if(!isHardMode && gameState === 'BOSS' && n !== 2) {
+      if(!isHardMode && !isSuperHard && gameState === 'BOSS' && n !== 2) {
           showToast("[SYSTEM] 보스전(일반)에서는 주먹만 사용할 수 있습니다!");
           return;
       }
@@ -1367,7 +1354,7 @@
       let rAngle = 0;
       const rAnim = setInterval(() => {
           rAngle += 0.3;
-          pistolGroup.rotation.x = -Math.abs(Math.sin(rAngle)) * 1.0;
+          pistolGroup.rotation.x = -Math.abs(Math.sin(rAngle)) * 1.5;
           pistolGroup.position.y = -0.15 - Math.abs(Math.sin(rAngle)) * 0.1;
           if(rAngle > Math.PI) { clearInterval(rAnim); pistolGroup.rotation.x = 0; pistolGroup.position.y = -0.15; }
       }, 30);
@@ -1449,11 +1436,10 @@
       platformMode = mode; isHardMode = hard; isSuperHard = superHard;
       initAudio(); document.getElementById('start-modal').style.display = 'none'; document.getElementById('collection-modal').style.display = 'none';
       
-      // BGM 싱크 초기화 (브라우저 시간 지연 버그 해결)
       if(audioCtx) nextBeatTime = audioCtx.currentTime + 0.1;
 
       if(isSuperHard) {
-          MAX_ENEMIES = 150; showToast("🔥 [SYSTEM] 슈퍼 하드 무한 모드 시작..."); // 브라우저 렉 한계점(CPU 병목)인 150명으로 최적화
+          MAX_ENEMIES = 150; showToast("🔥 [SYSTEM] 슈퍼 하드 무한 모드 시작..."); 
       } else if(isHardMode) { 
           MAX_ENEMIES = 100; showToast("[SYSTEM] 지옥 난이도 활성화."); 
           document.getElementById('gas-hint').style.display = 'block';
@@ -1479,7 +1465,9 @@
         
         realTimeSeconds++; inGameTimeSeconds += 15; 
         
-        if (isHardMode) {
+        if (isSuperHard) {
+            if (!player.isMoving && Date.now() - player.lastDamageTime > 1000 && player.hp < player.maxHp) { player.hp = Math.min(player.maxHp, player.hp + 20); updateHUD(); }
+        } else if (isHardMode) {
             if (!player.isMoving && Date.now() - player.lastDamageTime > 1000 && player.hp < player.maxHp) { player.hp = Math.min(player.maxHp, player.hp + 20); updateHUD(); }
         } else {
             if (Date.now() - player.lastDamageTime > 3000 && player.hp < player.maxHp) { player.hp = Math.min(player.maxHp, player.hp + 2); updateHUD(); }
@@ -1540,7 +1528,6 @@
               if (realTimeSeconds >= nextAirRaidTime) {
                   isAirRaidActive = true; showToast("[AIR RAID] 융단 폭격 경보!"); 
                   
-                  // 공습 시 암전 연출 적용
                   ambientLight.color.setHex(0xffaaaa);
                   ambientLight.intensity = 0.1;
                   setTimeout(()=> { 
@@ -1682,7 +1669,7 @@
       updateEnemies(); 
       updateStalin(); 
       updateParticles();
-      updateDynamicBGM(); // 매 프레임 다이나믹 BGM 상태 체크
+      updateDynamicBGM(); 
       renderer.render(scene, camera); 
     }
     animate();
