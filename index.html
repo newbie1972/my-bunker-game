@@ -182,6 +182,30 @@
     <button class="platform-btn" onclick="location.reload()" style="background:#2c3e50; border-color:#34495e;">다시 도전하기</button>
   </div>
 
+  <div id="settings-btn" onclick="openSettings()" style="position:absolute; top:15px; right:15px; z-index:20; cursor:pointer; background:rgba(20,20,20,0.8); padding:8px 12px; border-radius:6px; border:1px solid #555; display:flex; gap:8px; align-items:center; color:#ddd; font-weight:bold; font-size:12px; box-shadow:0 4px 6px rgba(0,0,0,0.5); backdrop-filter:blur(4px);">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+    설정 (ESC)
+  </div>
+
+  <div id="settings-modal" class="modal" style="display:none; z-index:80;">
+    <h1 style="font-size: 30px; letter-spacing: 2px;">오디오 설정</h1>
+    <div style="background: rgba(30, 30, 30, 0.9); border: 1px solid #555; border-radius: 8px; padding: 25px; width: 90%; max-width: 350px; text-align: left; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
+      <div style="margin-bottom: 20px;">
+        <label style="color: #fff; font-size: 15px; font-weight: bold; display: flex; justify-content: space-between; margin-bottom: 8px;">
+          배경음악 (BGM) <span id="bgm-val" style="color:#e67e22;">100%</span>
+        </label>
+        <input type="range" id="bgm-slider" min="0" max="1" step="0.01" value="1" style="width: 100%; cursor: pointer;">
+      </div>
+      <div>
+        <label style="color: #fff; font-size: 15px; font-weight: bold; display: flex; justify-content: space-between; margin-bottom: 8px;">
+          효과음 (SFX) <span id="sfx-val" style="color:#3498db;">100%</span>
+        </label>
+        <input type="range" id="sfx-slider" min="0" max="1" step="0.01" value="1" style="width: 100%; cursor: pointer;">
+      </div>
+    </div>
+    <button class="platform-btn" onclick="closeSettings()" style="min-width: 150px; background:#2c3e50;">적용 및 닫기</button>
+  </div>
+
   <div id="mobile-controls">
     <div id="joystick-zone"><div id="joystick-knob"></div></div>
     <div id="touch-look-zone"></div>
@@ -205,6 +229,9 @@
   <script>
     document.addEventListener('gesturestart', function(e) { e.preventDefault(); }, { passive: false });
     document.addEventListener('touchmove', function(e) { if(e.touches.length > 1) { e.preventDefault(); } }, { passive: false });
+
+    let globalBgmVolume = parseFloat(localStorage.getItem('myBunkerBgmVol') ?? '1.0');
+    let globalSfxVolume = parseFloat(localStorage.getItem('myBunkerSfxVol') ?? '1.0');
 
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     let audioCtx = null;
@@ -262,7 +289,7 @@
                 kick.type = 'sine'; kick.connect(kGain); kGain.connect(audioCtx.destination);
                 kick.frequency.setValueAtTime(150, time); 
                 kick.frequency.exponentialRampToValueAtTime(0.01, time + 0.2);
-                kGain.gain.setValueAtTime(0.4, time); 
+                kGain.gain.setValueAtTime(0.4 * globalBgmVolume, time); 
                 kGain.gain.exponentialRampToValueAtTime(0.01, time + 0.2);
                 kick.start(time); kick.stop(time + 0.2);
             }
@@ -276,7 +303,7 @@
         
         osc.type = type; 
         osc.frequency.setValueAtTime(freq, time);
-        gain.gain.setValueAtTime(vol, time); 
+        gain.gain.setValueAtTime(vol * globalBgmVolume, time); 
         gain.gain.exponentialRampToValueAtTime(0.001, time + dur);
         
         osc.start(time); osc.stop(time + dur);
@@ -287,7 +314,7 @@
         if (!audioCtx) return;
         const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
         osc.type = type; osc.frequency.setValueAtTime(f1, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(f2, audioCtx.currentTime + dur);
-        gain.gain.setValueAtTime(vol, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + dur);
+        gain.gain.setValueAtTime(vol * globalSfxVolume, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + dur);
         osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + dur);
       },
       shoot() { this.playOsc('sawtooth', 400, 30, 0.15, 0.5); },
@@ -401,7 +428,7 @@
       'portal': createRealisticTexture('#1f3a93', 'metal'),
       'atomic_door': createRealisticTexture('#00ff33', 'metal'), 
       'uboat': createRealisticTexture('#ff2222', 'metal'),      
-      'water_rock': createRealisticTexture('#3498db', 'rock')    
+      'water_rock': createRealisticTexture('#3498db', 'rock')   
     };
     materials.portal.emissive.setHex(0x0055ff); materials.portal.emissiveIntensity = 0.8;
     materials.atomic_door.emissive.setHex(0x00ff44); materials.atomic_door.emissiveIntensity = 1.0;
@@ -1374,9 +1401,31 @@
             selectTool(n); 
         }
         if(e.code==='KeyR') triggerReload(); 
+        if(e.code==='Escape') {
+            const modal = document.getElementById('settings-modal');
+            if (modal.style.display === 'flex') closeSettings();
+        }
     });
     window.addEventListener('keyup', e => keys[e.code] = false);
-    window.addEventListener('mousedown', e => { if(platformMode==='PC' && isGameStarted && e.button===0) triggerPrimaryAction(); });
+
+    document.addEventListener('pointerlockchange', () => {
+        if (platformMode === 'PC' && isGameStarted && gameState !== 'START' && gameState !== 'ENDING') {
+            if (!document.pointerLockElement) {
+                const modal = document.getElementById('settings-modal');
+                if (modal.style.display !== 'flex') {
+                    openSettings();
+                }
+            }
+        }
+    });
+
+    window.addEventListener('mousedown', e => { 
+        if(platformMode==='PC' && isGameStarted && e.target === renderer.domElement) {
+            document.body.requestPointerLock();
+            if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        }
+        if(platformMode==='PC' && isGameStarted && e.button===0 && document.pointerLockElement === document.body) triggerPrimaryAction(); 
+    });
     window.addEventListener('mousemove', e => {
       if (platformMode==='PC' && document.pointerLockElement === document.body && isGameStarted) {
         player.rotY -= e.movementX * 0.0025; player.rotX -= e.movementY * 0.0025; player.rotX = Math.max(-Math.PI/2.2, Math.min(Math.PI/2.2, player.rotX));
@@ -1662,6 +1711,31 @@
        if (collectedEndings.length >= 6) document.getElementById('super-hard-container').style.display = 'block';
        else document.getElementById('super-hard-container').style.display = 'none';
     }
+
+    function openSettings() {
+        document.getElementById('settings-modal').style.display = 'flex';
+        if (document.pointerLockElement) document.exitPointerLock();
+        document.getElementById('bgm-slider').value = globalBgmVolume;
+        document.getElementById('sfx-slider').value = globalSfxVolume;
+        document.getElementById('bgm-val').innerText = `${Math.round(globalBgmVolume * 100)}%`;
+        document.getElementById('sfx-val').innerText = `${Math.round(globalSfxVolume * 100)}%`;
+    }
+
+    function closeSettings() {
+        document.getElementById('settings-modal').style.display = 'none';
+    }
+
+    document.getElementById('bgm-slider').addEventListener('input', (e) => {
+        globalBgmVolume = parseFloat(e.target.value);
+        localStorage.setItem('myBunkerBgmVol', globalBgmVolume);
+        document.getElementById('bgm-val').innerText = `${Math.round(globalBgmVolume * 100)}%`;
+    });
+
+    document.getElementById('sfx-slider').addEventListener('input', (e) => {
+        globalSfxVolume = parseFloat(e.target.value);
+        localStorage.setItem('myBunkerSfxVol', globalSfxVolume);
+        document.getElementById('sfx-val').innerText = `${Math.round(globalSfxVolume * 100)}%`;
+    });
 
     function animate() { 
       requestAnimationFrame(animate); 
