@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>나의 벙커 (My Bunker) - Phase 4</title>
+  <title>나의 벙커 (My Bunker) - Phase 7 밸런스 패치</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; touch-action: none; }
     body, html { width: 100%; height: 100%; overflow: hidden; background-color: #000; font-family: 'Courier New', Courier, monospace; color: #fff; overscroll-behavior: none; }
@@ -49,11 +49,22 @@
     .platform-btn:hover { background: #34495e; border-color: #e67e22; color: #e67e22; box-shadow: 0 0 15px rgba(230,126,34,0.3); }
     .hard-btn { background: #641E16; border-color: #922B21; color: #f5b7b1; }
     .hard-btn:hover { background: #7B241C; border-color: #E74C3C; color: #fff; box-shadow: 0 0 20px rgba(231,76,60,0.6); }
+    
+    .upgrade-btn { background: #1f3a93; border-color: #2980b9; color: #fff; min-width: 150px; }
+    .upgrade-btn:hover { background: #2980b9; box-shadow: 0 0 15px rgba(41, 128, 185, 0.6); }
 
     .guide-box { background: rgba(30, 30, 30, 0.9); border: 1px solid #555; border-radius: 8px; padding: 15px; max-width: 400px; text-align: left; margin-bottom: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.8); }
     .guide-box h3 { color: #e67e22; font-size: 16px; margin-bottom: 10px; text-align: center; }
     .guide-box ul { list-style: none; padding: 0; color: #ccc; font-size: 13px; line-height: 1.6; }
     .guide-box li::before { content: "• "; color: #e74c3c; font-weight: bold; }
+
+    .upgrade-item { background: rgba(20, 20, 20, 0.8); border: 1px solid #444; border-radius: 6px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; text-align: left; gap: 15px; }
+    .upgrade-info { flex: 1; }
+    .upgrade-name { color: #e67e22; font-weight: bold; font-size: 14px; margin-bottom: 4px; }
+    .upgrade-desc { color: #95a5a6; font-size: 11px; }
+    .upgrade-buy-btn { background: #27ae60; border: none; padding: 8px 12px; color: white; font-weight: bold; border-radius: 4px; cursor: pointer; transition: 0.2s; font-size: 12px; }
+    .upgrade-buy-btn:hover:not(:disabled) { background: #2ecc71; box-shadow: 0 0 10px rgba(46, 204, 113, 0.5); }
+    .upgrade-buy-btn:disabled { background: #555; color: #888; cursor: not-allowed; }
 
     #mobile-controls { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 12; display: none; }
     #joystick-zone { position: absolute; bottom: 40px; left: 30px; width: 160px; height: 160px; background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(255, 255, 255, 0.15); border-radius: 50%; pointer-events: auto; backdrop-filter: blur(2px); }
@@ -68,8 +79,10 @@
     .btn-fire svg { width: 45px; height: 45px; }
     .btn-jump { width: 85px; height: 85px; border-color: #2980b9; }
     .btn-reload { width: 75px; height: 75px; }
+    
+    @keyframes scrapPop { 0% { transform: scale(1); } 50% { transform: scale(1.3); color: #f1c40f; } 100% { transform: scale(1); } }
+    .scrap-pop { animation: scrapPop 0.3s ease-out; }
 
-    /* [추가된 코드] 모바일 가로 모드 (화면 높이가 낮을 때) UI 자동 축소 반응형 */
     @media screen and (max-height: 500px) {
         #hud { top: 40px; left: 10px; right: 10px; }
         .hud-card { padding: 8px 10px; font-size: 11px; }
@@ -77,6 +90,7 @@
         #time-display { font-size: 14px !important; }
         #compass-container { top: 5px; padding: 4px 15px; font-size: 11px; }
         #settings-btn { top: 5px; right: 5px; padding: 6px 10px; font-size: 11px; }
+        #scrap-display { top: 5px; left: 5px; padding: 6px 10px; font-size: 12px; }
         
         #tool-bar { bottom: 10px; gap: 5px; }
         .tool-slot { width: 45px; height: 45px; font-size: 9px; border-radius: 8px; }
@@ -108,6 +122,11 @@
   
   <div id="compass-container">AZIMUTH: <span id="compass-dir" style="color:#fff;">N</span></div>
 
+  <div id="scrap-display" style="position:absolute; top:15px; left:15px; z-index:20; background:rgba(20,20,20,0.8); padding:8px 12px; border-radius:6px; border:1px solid #555; color:#ddd; font-weight:bold; font-size:14px; box-shadow:0 4px 6px rgba(0,0,0,0.5); backdrop-filter:blur(4px); display:flex; align-items:center; gap:6px;">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f39c12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+    <span id="scrap-val">0</span>
+  </div>
+
   <div id="hud">
     <div class="hud-card" id="hud-hp">
       <div style="color:#e74c3c; font-weight:bold; display: flex; align-items: center; gap: 5px;">
@@ -125,7 +144,7 @@
       <div style="color:#95a5a6; font-weight:bold; display: flex; justify-content: flex-end; align-items: center; gap: 5px;">
         AMMO <svg class="icon-inline" style="width: 1em; height: 1em;" viewBox="0 0 24 24"><path d="M6 2v16c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V2H6zm6 16c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>
       </div>
-      <div style="font-size: 18px; font-family: monospace; color: #fff; margin-top: 2px;"><span id="ammo-clip" style="color:#f1c40f;">12</span> <span style="font-size:12px;color:#777;">/</span> <span id="ammo-reserve" style="font-size:14px;">48</span></div>
+      <div style="font-size: 18px; font-family: monospace; color: #fff; margin-top: 2px;"><span id="ammo-clip" style="color:#f1c40f;">6</span> <span style="font-size:12px;color:#777;">/</span> <span id="ammo-reserve" style="font-size:14px;">24</span></div>
     </div>
   </div>
 
@@ -180,7 +199,22 @@
         <svg class="icon-inline icon-stroke" viewBox="0 0 24 24"><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><path d="M8 20v2h8v-2"/><path d="M12.5 17h-1"/><path d="M16 20a4 4 0 0 0 4-4v-4a8 8 0 1 0-16 0v4a4 4 0 0 0 4 4"/></svg> Mobile HARD
       </button>
     </div>
-    <button class="platform-btn" onclick="showCollection()" style="margin-top: 20px; background:#e67e22; border-color:#d35400;">🏆 엔딩 도감</button>
+    
+    <div class="btn-group" style="margin-top: 15px;">
+        <button class="platform-btn" onclick="showCollection()" style="background:#e67e22; border-color:#d35400;">🏆 엔딩 도감</button>
+        <button class="platform-btn upgrade-btn" onclick="openUpgrade()">🛠️ 군수 비축고</button>
+    </div>
+  </div>
+
+  <div id="upgrade-modal" class="modal" style="display:none; z-index:75;">
+    <h1 style="font-size: 30px; letter-spacing: 2px;">지하 군수 비축고</h1>
+    <h2 style="font-size: 14px; margin-bottom: 20px;">보유 스크랩: <span id="upgrade-scrap-val" style="color:#f39c12; font-weight:bold;">0</span> 개</h2>
+    
+    <div id="upgrade-list" style="width: 90%; max-width: 450px; text-align: left; margin-bottom: 20px; overflow-y:auto; max-height: 50vh; padding-right:5px;">
+        <!-- JS generated upgrades go here -->
+    </div>
+
+    <button class="platform-btn" onclick="closeUpgrade()" style="background:#2c3e50;">닫기</button>
   </div>
 
   <div id="collection-modal" class="modal" style="display:none; z-index:70;">
@@ -256,6 +290,77 @@
 
     let globalBgmVolume = parseFloat(localStorage.getItem('myBunkerBgmVol') ?? '1.0');
     let globalSfxVolume = parseFloat(localStorage.getItem('myBunkerSfxVol') ?? '1.0');
+
+    // --- Phase 6/7: Scrap & Upgrades Variables ---
+    let scrap = parseInt(localStorage.getItem('myBunkerScrap')) || 0;
+    let upgrades = JSON.parse(localStorage.getItem('myBunkerUpgrades')) || { hp: 0, pickaxe: 0, ammo: 0, speed: 0 };
+    document.getElementById('scrap-val').innerText = scrap;
+
+    const UPGRADE_COSTS = [15, 35, 65, 100, 150]; // 7차 밸런스 비용
+    const UPGRADE_DATA = {
+        hp: { title: '방탄판 보강 (Max HP +20)', desc: '지하 비축고의 철판을 덧대어 최대 체력을 상승시킵니다.', maxLv: 5 },
+        pickaxe: { title: '채굴 아드레날린 (체력 회복)', desc: '블록 파괴 시마다 일정 확률로 잃은 체력을 즉시 +2 회복합니다.', maxLv: 3 },
+        ammo: { title: '확장 탄창 (장전 수 +3발)', desc: 'Luger 권총의 탄창이 개조되어 한 번에 쏘는 총알과 예비 탄약이 증가합니다.', maxLv: 5 },
+        speed: { title: '경량 전투화 (이속 상승)', desc: '불필요한 장비를 줄여 이동 속도가 소폭 상승합니다.', maxLv: 5 }
+    };
+
+    function addScrap(amount) {
+        scrap += amount;
+        localStorage.setItem('myBunkerScrap', scrap);
+        const scrapEl = document.getElementById('scrap-val');
+        scrapEl.innerText = scrap;
+        scrapEl.parentElement.classList.remove('scrap-pop');
+        void scrapEl.parentElement.offsetWidth; 
+        scrapEl.parentElement.classList.add('scrap-pop');
+    }
+
+    function renderUpgradeUI() {
+        document.getElementById('upgrade-scrap-val').innerText = scrap;
+        const list = document.getElementById('upgrade-list');
+        list.innerHTML = '';
+        
+        for (const key in UPGRADE_DATA) {
+            const data = UPGRADE_DATA[key];
+            const currentLv = upgrades[key];
+            const nextCost = UPGRADE_COSTS[currentLv] || 999;
+            const isMax = currentLv >= data.maxLv;
+            
+            const div = document.createElement('div');
+            div.className = 'upgrade-item';
+            div.innerHTML = `
+                <div class="upgrade-info">
+                    <div class="upgrade-name">${data.title} <span style="color:#bdc3c7;">[Lv.${currentLv}/${data.maxLv}]</span></div>
+                    <div class="upgrade-desc">${data.desc}</div>
+                </div>
+                <button class="upgrade-buy-btn" ${isMax || scrap < nextCost ? 'disabled' : ''} onclick="buyUpgrade('${key}', ${nextCost})">
+                    ${isMax ? 'MAX' : `${nextCost} 개`}
+                </button>
+            `;
+            list.appendChild(div);
+        }
+    }
+
+    function openUpgrade() {
+        document.getElementById('start-modal').style.display = 'none';
+        document.getElementById('upgrade-modal').style.display = 'flex';
+        renderUpgradeUI();
+    }
+
+    function closeUpgrade() {
+        document.getElementById('upgrade-modal').style.display = 'none';
+        document.getElementById('start-modal').style.display = 'flex';
+    }
+
+    function buyUpgrade(key, cost) {
+        if (scrap >= cost && upgrades[key] < UPGRADE_DATA[key].maxLv) {
+            addScrap(-cost);
+            upgrades[key]++;
+            localStorage.setItem('myBunkerUpgrades', JSON.stringify(upgrades));
+            renderUpgradeUI();
+            sfx.reload(); 
+        }
+    }
+    // --- End Upgrades ---
 
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     let audioCtx = null;
@@ -382,8 +487,9 @@
 
     let player = {
       hp: 100, maxHp: 100, pos: new THREE.Vector3(0, 1.5, 5), rotY: 0, rotX: 0,
-      speed: 0.11, velocityY: 0, isGrounded: false, activeSlot: 1, ammoClip: 12, ammoReserve: 48,
-      isReloading: false, lastDamageTime: 0, isMoving: false
+      baseSpeed: 0.11, speed: 0.11, velocityY: 0, isGrounded: false, activeSlot: 1, 
+      maxClip: 6, ammoClip: 6, ammoReserve: 24,
+      digPower: 1, isReloading: false, lastDamageTime: 0, isMoving: false
     };
 
     let stalin = null;
@@ -684,7 +790,16 @@
     function spawnEnemy(x, z) {
       if (enemies.length >= MAX_ENEMIES || (gameState !== 'BUNKER' && gameState !== 'FINAL_WAVE' && gameState !== 'BOSS' && gameState !== 'ATOMIC_WAVE' && gameState !== 'SUPER_HARD')) return;
       
-      let isSoviet = isSuperHard ? true : (Math.random() < (isHardMode ? 0.5 : 0.15));
+      // Phase 7: Dynamic scaling soviet chance for Normal mode
+      let sovietChance = isHardMode ? 0.5 : 0.15;
+      if (!isHardMode && !isSuperHard) {
+          if (realTimeSeconds < 45) sovietChance = 0.0;
+          else if (realTimeSeconds < 100) sovietChance = 0.15;
+          else if (realTimeSeconds < 140) sovietChance = 0.30;
+          else sovietChance = 0.80;
+      }
+      
+      let isSoviet = isSuperHard ? true : (Math.random() < sovietChance);
       const rig = createHumanoidEnemy(isSoviet);
       rig.group.position.set(x, 1.0, z);
       enemyGroup.add(rig.group); 
@@ -706,11 +821,19 @@
       if (!isGameStarted || gameState === 'START' || gameState === 'ENDING' || gameState === 'TRANSITION') return;
       const now = Date.now();
       
-      // 슈퍼 하드 모드: 한계치 스피드(1.2) 및 쿨타임 없음(1ms), 공격력 극너프(0.001)
       let enemySpeed = isSuperHard ? 1.2 : (isHardMode ? 0.40 : 0.055); 
       let shootCooldown = isSuperHard ? 1 : (isHardMode ? 10 : 2200); 
       let enemyDamage = isSuperHard ? 0.001 : (isHardMode ? 0.01 : 2);     
       let digCooldown = isSuperHard ? 1 : (isHardMode ? 100 : 600);
+
+      // Phase 7 Dynamic Scaling for Normal Mode
+      if (!isHardMode && !isSuperHard && (gameState === 'BUNKER' || gameState === 'FINAL_WAVE')) {
+          let timeFactor = Math.min(1.0, realTimeSeconds / 150);
+          enemySpeed = 0.055 + (0.2 * timeFactor); // Gets faster
+          shootCooldown = 2200 - (1800 * timeFactor); // Shoots more often
+          digCooldown = 600 - (450 * timeFactor); // Digs faster
+          enemyDamage = Math.max(0.1, 2 - (1.9 * timeFactor)); // Attack damage drops significantly
+      }
 
       if (gameState === 'ATOMIC_WAVE') {
           enemySpeed = Math.min(enemySpeed * 10, 0.85); 
@@ -894,7 +1017,7 @@
 
       let speed = 0.045; let atkCooldown = 1500; let dmg = 8;
       if (isSuperHard) {
-          speed = 0.8; atkCooldown = 10; dmg = 1; // 슈퍼하드: 속도 초광폭, 데미지 1 
+          speed = 0.8; atkCooldown = 10; dmg = 1; 
       } else if (isHardMode) {
           if (stalin.phase === 1) speed = 0.08;
           if (stalin.phase === 2) speed = 0.12;
@@ -917,7 +1040,7 @@
                   showToast("[DEBUFF] 짙은 매연! 시야 방해 및 둔화");
                   document.getElementById('vignette').style.background = 'radial-gradient(circle, rgba(50,50,50,0.8) 20%, rgba(0,0,0,0.95) 100%)';
                   player.speed = 0.05; 
-                  setTimeout(() => { document.getElementById('vignette').style.background = 'radial-gradient(circle, transparent 40%, rgba(0,0,0,0.85) 120%)'; player.speed = 0.11; }, 2000);
+                  setTimeout(() => { document.getElementById('vignette').style.background = 'radial-gradient(circle, transparent 40%, rgba(0,0,0,0.85) 120%)'; player.speed = player.baseSpeed; }, 2000);
               }
           }
 
@@ -1003,7 +1126,7 @@
               if (stalin.chargeLine) { scene.remove(stalin.chargeLine); stalin.chargeLine.geometry.dispose(); stalin.chargeLine = null; }
           }
       } else if (stalin.actionState === 'CHARGING') {
-          const nextX = sPos.x + stalin.chargeDir.x * (isSuperHard ? 2.5 : 0.5); // 슈퍼 하드 모드 초고속 돌진
+          const nextX = sPos.x + stalin.chargeDir.x * (isSuperHard ? 2.5 : 0.5); 
           const nextZ = sPos.z + stalin.chargeDir.z * (isSuperHard ? 2.5 : 0.5);
           const maxBound = MAP_SIZE / 2 - 2.0;
           
@@ -1081,7 +1204,10 @@
       }
 
       document.getElementById('boss-hp-fill').style.width = `${(stalin.hp / stalin.maxHp) * 100}%`;
-      if (stalin.hp <= 0) triggerEnding('VICTORY');
+      if (stalin.hp <= 0) {
+          triggerEnding('VICTORY');
+          if(Math.random() < 0.35) addScrap(50); 
+      }
     }
 
     function triggerJump(e) { 
@@ -1198,8 +1324,10 @@
         if (player.isReloading || player.ammoClip <= 0) { if(player.ammoClip<=0) triggerReload(); return; }
         player.ammoClip--; updateHUD(); sfx.shoot();
         
+        // Phase 7 Weapon Balance: Camera Shake added for better punchy feel
         pistolGroup.rotation.x = 0.3; pistolGroup.position.z = -0.10;
-        setTimeout(() => { pistolGroup.rotation.x = 0; pistolGroup.position.z = -0.15; }, 80); 
+        camera.position.y += 0.03; 
+        setTimeout(() => { pistolGroup.rotation.x = 0; pistolGroup.position.z = -0.15; camera.position.y -= 0.03; }, 80); 
         
         const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(0, 0), camera);
         const hitEnemies = ray.intersectObjects(enemyGroup.children, true); 
@@ -1250,6 +1378,9 @@
                         enemyGroup.remove(en.group); 
                         const idx = enemies.indexOf(en);
                         if (idx > -1) enemies.splice(idx, 1);
+                        if(Math.random() < 0.35) addScrap(en.isSoviet ? 3 : 1);
+                        // Phase 7 Weapon Balance: 20% chance to drop +2 reserve ammo
+                        if(Math.random() < 0.20) { player.ammoReserve += 2; showToast("[AMMO] 예비 탄약 +2 획득"); updateHUD(); }
                     }
                 }
             }
@@ -1293,6 +1424,8 @@
                 flashEnemyColor(en.group.children); updateHUD(); showToast("[HEAL] 펀치 피흡 (+2)");
                 if (en.hp <= 0) { 
                   enemyGroup.remove(en.group); enemies.splice(enemies.indexOf(en), 1); 
+                  if(Math.random() < 0.35) addScrap(en.isSoviet ? 3 : 1);
+                  if(Math.random() < 0.20) { player.ammoReserve += 2; showToast("[AMMO] 예비 탄약 +2 획득"); updateHUD(); }
                 }
             }
           }
@@ -1310,13 +1443,22 @@
           if (v.type === 'bedrock' || v.type === 'portal') { showToast("[SYSTEM] 절대 파괴 불가 지형"); return; }
           if (v.type === 'uboat') { showToast("[SYSTEM] U-보트는 주먹으로 조작해야 합니다."); return; }
           sfx.dig();
-          v.hp -= 1; 
+          v.hp -= player.digPower; 
           spawnParticles(v.x, v.y, v.z, v.type);
 
           handToolGroup.rotation.x = -0.3; setTimeout(() => handToolGroup.rotation.x = 0, 100);
           if (v.hp <= 0) {
               if (v.type === 'atomic_door') triggerAtomicWave();
               removeVoxel(v.x, v.y, v.z); 
+              
+              if (upgrades.pickaxe > 0 && Math.random() < (upgrades.pickaxe * 0.10)) { 
+                  player.hp = Math.min(player.maxHp, player.hp + 2);
+                  updateHUD();
+                  document.getElementById('blood-overlay').style.boxShadow = 'inset 0 0 50px rgba(46,204,113,0.5)';
+                  setTimeout(() => document.getElementById('blood-overlay').style.boxShadow = 'inset 0 0 150px rgba(255,0,0,0.8)', 300);
+              }
+              
+              if (Math.random() < 0.05) addScrap(1); 
           } else {
               if (['atomic_door', 'water_rock'].includes(v.type)) showToast(`[특수 지형] 파쇄 중... (${v.hp}/${v.maxHp})`);
               else showToast(`[DIG] 파쇄 중... (${v.hp}/${v.maxHp})`);
@@ -1342,13 +1484,16 @@
         }, 50);
 
         const cx = Math.floor(target.x); const cy = Math.floor(target.y); const cz = Math.floor(target.z);
-        for(let dx=-3; dx<=3; dx++) for(let dy=-3; dy<=3; dy++) for(let dz=-3; dz<=3; dz++) {
-            removeVoxel(cx+dx, cy+dy, cz+dz, true);
+        // Phase 7 Panzerfaust Balance: Reduced radius from 3 to 2, forced break set to FALSE so it doesn't break concrete walls.
+        for(let dx=-2; dx<=2; dx++) for(let dy=-2; dy<=2; dy++) for(let dz=-2; dz<=2; dz++) {
+            removeVoxel(cx+dx, cy+dy, cz+dz, false);
         }
 
         for (let i = enemies.length - 1; i >= 0; i--) {
             if (enemies[i].group.position.distanceTo(target) < 5.0) {
                 enemyGroup.remove(enemies[i].group); enemies.splice(i, 1);
+                if(Math.random() < 0.35) addScrap(1);
+                if(Math.random() < 0.20) { player.ammoReserve += 2; showToast("[AMMO] 예비 탄약 +2 획득"); updateHUD(); }
             }
         }
         if (stalin && stalin.group.position.distanceTo(target) < 5.0) {
@@ -1370,11 +1515,11 @@
     }
 
     function updateHUD() {
-      document.getElementById('hp-num').innerText = Math.floor(player.hp); document.getElementById('hp-bar').style.width = `${player.hp}%`;
+      document.getElementById('hp-num').innerText = Math.floor(player.hp); document.getElementById('hp-bar').style.width = `${(player.hp / player.maxHp) * 100}%`;
       document.getElementById('ammo-clip').innerText = player.ammoClip > 100 ? "∞" : player.ammoClip; 
       document.getElementById('ammo-reserve').innerText = player.ammoReserve > 100 ? "∞" : player.ammoReserve;
       
-      if(player.hp <= 30 && player.hp > 0) document.getElementById('blood-overlay').classList.add('heartbeat-active');
+      if(player.hp <= player.maxHp * 0.3 && player.hp > 0) document.getElementById('blood-overlay').classList.add('heartbeat-active');
       else document.getElementById('blood-overlay').classList.remove('heartbeat-active');
     }
 
@@ -1399,7 +1544,7 @@
     
     function triggerReload(e) {
       if(e) { e.preventDefault(); e.stopPropagation(); }
-      if (!isGameStarted || gameState === 'START' || player.isReloading || player.ammoClip === 12 || player.ammoReserve <= 0) return;
+      if (!isGameStarted || gameState === 'START' || player.isReloading || player.ammoClip === player.maxClip || player.ammoReserve <= 0) return;
       player.isReloading = true; sfx.reload(); showToast("[SYSTEM] 장전 중...");
       
       let rAngle = 0;
@@ -1411,7 +1556,7 @@
       }, 30);
 
       setTimeout(() => {
-        const amt = Math.min(12 - player.ammoClip, player.ammoReserve);
+        const amt = Math.min(player.maxClip - player.ammoClip, player.ammoReserve);
         player.ammoClip += amt; player.ammoReserve -= amt; player.isReloading = false; updateHUD();
       }, 1000);
     }
@@ -1496,7 +1641,7 @@
 
     function startGame(mode, hard, superHard = false) {
       platformMode = mode; isHardMode = hard; isSuperHard = superHard;
-      initAudio(); document.getElementById('start-modal').style.display = 'none'; document.getElementById('collection-modal').style.display = 'none';
+      initAudio(); document.getElementById('start-modal').style.display = 'none'; document.getElementById('collection-modal').style.display = 'none'; document.getElementById('upgrade-modal').style.display = 'none';
       
       if(audioCtx) nextBeatTime = audioCtx.currentTime + 0.1;
 
@@ -1508,19 +1653,35 @@
       } else { 
           showToast("[SYSTEM] 일반 난이도 시작."); 
       }
+      
+      player.maxHp = 100 + (upgrades.hp * 20);
+      player.hp = player.maxHp;
+      player.digPower = 1; 
+      player.baseSpeed = 0.11 + (upgrades.speed * 0.005);
+      player.speed = player.baseSpeed;
+      
+      player.maxClip = 6 + (upgrades.ammo * 3);
+      
+      if (isSuperHard) {
+          player.ammoClip = 999; player.ammoReserve = 9999;
+      } else if (isHardMode) {
+          player.ammoClip = player.maxClip; player.ammoReserve = 999;
+      } else {
+          player.ammoClip = player.maxClip; player.ammoReserve = player.maxClip * 4;
+      }
 
       isGameStarted = true; gameState = isSuperHard ? 'SUPER_HARD' : 'BUNKER'; 
       if (mode === 'MOBILE') document.getElementById('mobile-controls').style.display = 'block'; else document.body.requestPointerLock();
       
       if (isSuperHard) {
           buildRuinsWorld(); player.pos.set(0, 1.5, 10); player.rotY = Math.PI; 
-          player.ammoClip = 999; player.ammoReserve = 9999;
           hasPanzerfaust = true; document.getElementById('slot-4').style.display = 'flex';
           updateHUD(); spawnStalinBoss();
       } else {
           buildInitialWorld(); 
       }
       updateHandModel();
+      updateHUD(); 
       
       setInterval(() => {
         if (!isGameStarted || gameState === 'ENDING' || gameState === 'START') return;
@@ -1568,9 +1729,19 @@
         
         if (gameState === 'BUNKER') {
           if (realTimeSeconds >= 15 && (nextEnemySpawnTime === -1 || realTimeSeconds >= nextEnemySpawnTime)) {
-            let spawnCount = isHardMode ? (Math.floor(Math.random() * 10) + 5) : (Math.floor(Math.random() * 5) + 2); 
+            let spawnCount = isHardMode ? (Math.floor(Math.random() * 10) + 5) : (Math.floor(Math.random() * 3) + 1); 
+            let spawnInterval = isHardMode ? (Math.floor(Math.random() * 3) + 2) : 6;
+            
+            // Phase 7 Dynamic Spawn Interval for Normal Mode
+            if (!isHardMode && !isSuperHard) {
+                if (realTimeSeconds < 45) { spawnInterval = Math.floor(Math.random() * 3) + 6; } 
+                else if (realTimeSeconds < 100) { spawnInterval = Math.floor(Math.random() * 2) + 4; spawnCount += 1; } 
+                else if (realTimeSeconds < 140) { spawnInterval = Math.floor(Math.random() * 2) + 2; spawnCount += 2; } 
+                else { spawnInterval = Math.floor(Math.random() * 2) + 1; spawnCount += 4; } 
+            }
+            
             for(let i=0; i<spawnCount; i++) { const sp = spawnPoints[Math.floor(Math.random() * spawnPoints.length)]; spawnEnemy(sp.x + (Math.random()-0.5)*4, sp.z + (Math.random()-0.5)*4); }
-            nextEnemySpawnTime = realTimeSeconds + (isHardMode ? Math.floor(Math.random() * 3) + 2 : Math.floor(Math.random() * 6) + 5); 
+            nextEnemySpawnTime = realTimeSeconds + spawnInterval; 
           }
           
           if (isHardMode) {
@@ -1637,6 +1808,7 @@
         for (let i = enemies.length - 1; i >= 0; i--) {
           if (enemies[i].group.position.y >= bottomY - 1 && enemies[i].group.position.y <= hitY + 3 && Math.hypot(enemies[i].group.position.x - cx, enemies[i].group.position.z - cz) < dmgRadius) {
             enemyGroup.remove(enemies[i].group); enemies.splice(i, 1);
+            if(Math.random() < 0.35) addScrap(1);
           }
         }
     }
@@ -1648,7 +1820,7 @@
         buildRuinsWorld(); player.pos.set(0, 1.5, 10); player.rotY = Math.PI; player.hp = player.maxHp; 
         
         if (isHardMode) {
-            player.ammoClip = 12; player.ammoReserve = 999; 
+            player.ammoClip = player.maxClip; player.ammoReserve = 999; 
         } else {
             player.ammoClip = 0; player.ammoReserve = 0;
             document.getElementById('slot-1').classList.add('disabled');
