@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>나의 벙커 (My Bunker) - Phase 7 밸런스 패치</title>
+  <title>나의 벙커 (My Bunker) - Phase 9 (Stalin Overhaul Fix)</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; touch-action: none; }
     body, html { width: 100%; height: 100%; overflow: hidden; background-color: #000; font-family: 'Courier New', Courier, monospace; color: #fff; overscroll-behavior: none; }
@@ -83,6 +83,7 @@
     @keyframes scrapPop { 0% { transform: scale(1); } 50% { transform: scale(1.3); color: #f1c40f; } 100% { transform: scale(1); } }
     .scrap-pop { animation: scrapPop 0.3s ease-out; }
 
+    /* 모바일 가로모드용 자동 스케일링 (화면 높이 500px 이하) */
     @media screen and (max-height: 500px) {
         #hud { top: 40px; left: 10px; right: 10px; }
         .hud-card { padding: 8px 10px; font-size: 11px; }
@@ -106,10 +107,21 @@
         .btn-jump { width: 60px; height: 60px; }
         .btn-reload { width: 55px; height: 55px; }
     }
+
+    #orientation-warning { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; flex-direction: column; justify-content: center; align-items: center; color: #fff; text-align: center; }
+    @media screen and (orientation: portrait) and (max-width: 600px) {
+        #orientation-warning { display: flex; }
+    }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
+
+  <div id="orientation-warning">
+    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#e67e22" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:20px; animation: rotatePhone 2s infinite;"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+    <h2>원활한 플레이를 위해<br>기기를 가로(Landscape)로<br>회전해 주세요.</h2>
+    <style>@keyframes rotatePhone { 0% { transform: rotate(0deg); } 50% { transform: rotate(-90deg); } 100% { transform: rotate(-90deg); } }</style>
+  </div>
 
   <div id="game-container"></div>
   <div id="vignette"></div>
@@ -176,7 +188,7 @@
       <h3>[게임 통합 가이드]</h3>
       <ul>
         <li><b>조작법:</b> 이동(WASD/조이스틱), 시점(마우스/터치), 액션(클릭), 무기(1~4번)</li>
-        <li><b>생존 & 채굴:</b> 곡괭이(3번)로 지하 깊은 곳까지 파고 내려가 벙커를 탈출하거나 숨겨진 비밀을 찾으세요.</li>
+        <li><b>생존 & 채굴:</b> 곡괭이(3번)로 지하 깊은 곳까지 파고 내려가 탈출구나 보급을 찾으세요. (파괴 시 낮은 확률로 스크랩 획득)</li>
         <li><b>특수 적군:</b> 흉갑을 입은 소련군(하드 50% 확률)은 <b>헤드샷에만 반응</b>하며 처치 시 [판저파우스트(4번)]를 확정 드랍합니다.</li>
         <li><b>하드 모드:</b> 적군이 미친 듯이 몰려오지만, 움직이지 않고 은폐 시 체력이 대폭(+20) 자동 회복됩니다.</li>
         <li id="gas-hint" style="display:none; color:#2ecc71;"><b>[경고]</b> 하드모드 지하 <span id="gas-depth"></span> 구간에 치명적인 유독가스층 존재. 접근 주의!</li>
@@ -211,7 +223,7 @@
     <h2 style="font-size: 14px; margin-bottom: 20px;">보유 스크랩: <span id="upgrade-scrap-val" style="color:#f39c12; font-weight:bold;">0</span> 개</h2>
     
     <div id="upgrade-list" style="width: 90%; max-width: 450px; text-align: left; margin-bottom: 20px; overflow-y:auto; max-height: 50vh; padding-right:5px;">
-        <!-- JS generated upgrades go here -->
+        <!-- Upgrades dynamically rendered -->
     </div>
 
     <button class="platform-btn" onclick="closeUpgrade()" style="background:#2c3e50;">닫기</button>
@@ -288,25 +300,47 @@
     document.addEventListener('gesturestart', function(e) { e.preventDefault(); }, { passive: false });
     document.addEventListener('touchmove', function(e) { if(e.touches.length > 1) { e.preventDefault(); } }, { passive: false });
 
+    // --- Data Encryption Wrapper & Bug Fix (Phase 5) ---
+    function safeSetItem(key, data) { 
+        try { 
+            const encoded = btoa(encodeURIComponent(JSON.stringify(data))); 
+            localStorage.setItem(key, encoded); 
+        } catch(e) { console.error("Save Error", e); } 
+    }
+    
+    function safeGetItem(key, defaultVal) { 
+        try { 
+            const raw = localStorage.getItem(key); 
+            if(!raw) return defaultVal;
+            try {
+                // 시도 1: 암호화된(Base64) 데이터 복호화 시도
+                return JSON.parse(decodeURIComponent(atob(raw))); 
+            } catch (e) {
+                // 시도 2: 만약 복호화에 실패했다면(과거 구버전 암호화 안된 데이터), 그대로 파싱 시도
+                return JSON.parse(raw);
+            }
+        } catch(e) { return defaultVal; }
+    }
+
     let globalBgmVolume = parseFloat(localStorage.getItem('myBunkerBgmVol') ?? '1.0');
     let globalSfxVolume = parseFloat(localStorage.getItem('myBunkerSfxVol') ?? '1.0');
 
-    // --- Phase 6/7: Scrap & Upgrades Variables ---
-    let scrap = parseInt(localStorage.getItem('myBunkerScrap')) || 0;
-    let upgrades = JSON.parse(localStorage.getItem('myBunkerUpgrades')) || { hp: 0, pickaxe: 0, ammo: 0, speed: 0 };
+    // --- Phase 6: Scrap & Upgrades Variables ---
+    let scrap = parseInt(safeGetItem('myBunkerScrap', 0)) || 0;
+    let upgrades = safeGetItem('myBunkerUpgrades', { hp: 0, pickaxe: 0, ammo: 0, speed: 0 });
     document.getElementById('scrap-val').innerText = scrap;
 
-    const UPGRADE_COSTS = [15, 35, 65, 100, 150]; // 7차 밸런스 비용
+    const UPGRADE_COSTS = [35, 65, 100, 150, 200];
     const UPGRADE_DATA = {
         hp: { title: '방탄판 보강 (Max HP +20)', desc: '지하 비축고의 철판을 덧대어 최대 체력을 상승시킵니다.', maxLv: 5 },
-        pickaxe: { title: '채굴 아드레날린 (체력 회복)', desc: '블록 파괴 시마다 일정 확률로 잃은 체력을 즉시 +2 회복합니다.', maxLv: 3 },
-        ammo: { title: '확장 탄창 (장전 수 +3발)', desc: 'Luger 권총의 탄창이 개조되어 한 번에 쏘는 총알과 예비 탄약이 증가합니다.', maxLv: 5 },
+        pickaxe: { title: '채굴 아드레날린 (체력 피흡)', desc: '블록 파괴 시마다 일정 확률(10~30%)로 잃은 체력을 즉시 +2 회복합니다.', maxLv: 3 },
+        ammo: { title: '확장 탄창 (장전 수 +3발)', desc: 'Luger 권총의 탄창 용량이 증가하여 재장전 없이 더 많이 사격합니다.', maxLv: 5 },
         speed: { title: '경량 전투화 (이속 상승)', desc: '불필요한 장비를 줄여 이동 속도가 소폭 상승합니다.', maxLv: 5 }
     };
 
     function addScrap(amount) {
         scrap += amount;
-        localStorage.setItem('myBunkerScrap', scrap);
+        safeSetItem('myBunkerScrap', scrap);
         const scrapEl = document.getElementById('scrap-val');
         scrapEl.innerText = scrap;
         scrapEl.parentElement.classList.remove('scrap-pop');
@@ -355,12 +389,11 @@
         if (scrap >= cost && upgrades[key] < UPGRADE_DATA[key].maxLv) {
             addScrap(-cost);
             upgrades[key]++;
-            localStorage.setItem('myBunkerUpgrades', JSON.stringify(upgrades));
+            safeSetItem('myBunkerUpgrades', upgrades);
             renderUpgradeUI();
             sfx.reload(); 
         }
     }
-    // --- End Upgrades ---
 
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     let audioCtx = null;
@@ -468,16 +501,13 @@
     let isHardBombingSequence = false;
     let atomicWaveTimer = 0;
     let hasPanzerfaust = false;
+    let frameCount = 0; // 최적화용
 
     let gasDepthY1 = -8 - Math.floor(Math.random() * 4); 
     let gasDepthY2 = -16 - Math.floor(Math.random() * 4); 
     document.getElementById('gas-depth').innerText = `${Math.abs(gasDepthY1)}m 및 ${Math.abs(gasDepthY2)}m`;
     
-    let collectedEndings = JSON.parse(localStorage.getItem('myBunkerEndings') || '[]');
-    if (collectedEndings.includes('ARTIST')) {
-        collectedEndings = collectedEndings.filter(e => e !== 'ARTIST');
-        localStorage.setItem('myBunkerEndings', JSON.stringify(collectedEndings));
-    }
+    let collectedEndings = safeGetItem('myBunkerEndings', []);
 
     const MAP_SIZE = 40;
     const MIN_DIG_Y = -67; 
@@ -489,7 +519,8 @@
       hp: 100, maxHp: 100, pos: new THREE.Vector3(0, 1.5, 5), rotY: 0, rotX: 0,
       baseSpeed: 0.11, speed: 0.11, velocityY: 0, isGrounded: false, activeSlot: 1, 
       maxClip: 6, ammoClip: 6, ammoReserve: 24,
-      digPower: 1, isReloading: false, lastDamageTime: 0, isMoving: false
+      digPower: 1, isReloading: false, lastDamageTime: 0, isMoving: false,
+      isFlinching: false
     };
 
     let stalin = null;
@@ -499,7 +530,7 @@
     scene.fog = new THREE.FogExp2(0x050505, 0.06); 
 
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.05, 1000); 
-    const renderer = new THREE.WebGLRenderer({ antialias: false });
+    const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(1.0); 
     container.appendChild(renderer.domElement);
@@ -550,6 +581,15 @@
       const map = new THREE.CanvasTexture(cv); map.magFilter = THREE.NearestFilter; 
       return new THREE.MeshStandardMaterial({ map: map, roughness: type === 'metal' ? 0.3 : (type === 'dirt' ? 1.0 : 0.8), metalness: type === 'metal' ? 0.8 : 0.05 });
     }
+
+    // --- High Quality Materials (Phase 8 & 9) ---
+    const matLeather = createRealisticTexture('#5c4033', 'dirt'); 
+    const matRedStar = new THREE.MeshStandardMaterial({color: 0xdd1111, roughness: 0.6});
+    const matGun = createRealisticTexture('#1e1e1e', 'metal');
+    const sovietArmor = new THREE.MeshStandardMaterial({ color: 0x666666, metalness: 0.92, roughness: 0.18 }); 
+    const baseMatSoldierBody = createRealisticTexture('#48583c', 'dirt');
+    const baseMatSoldierHelmet = createRealisticTexture('#2a3424', 'metal');
+    const baseMatSoldierSkin = createRealisticTexture('#d8aa82', 'dirt');
 
     const materials = {
       'dirt': createRealisticTexture('#4a3224', 'dirt'), 'rock': createRealisticTexture('#3a3a3a', 'rock'), 
@@ -717,6 +757,12 @@
     const pSlide = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.05, 0.15), gunMetal); pSlide.position.set(0, 0.06, 0.05);
     const pGrip = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.12, 0.06), gunWood); pGrip.position.set(0, -0.02, 0.1); pGrip.rotation.x = Math.PI/8;
     const pTrigger = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.04, 0.01), gunMetal); pTrigger.position.set(0, 0.02, 0.03);
+    
+    // [FIX] 권총의 진짜 총구 좌표(Muzzle)를 식별하기 위한 투명한 3D 오브젝트 추가
+    const pMuzzle = new THREE.Object3D();
+    pMuzzle.position.set(0, 0.06, -0.28); 
+    pistolGroup.add(pMuzzle);
+    
     pistolGroup.add(pBarrel, pSlide, pGrip, pTrigger); pistolGroup.position.set(0.15, -0.15, -0.3); handToolGroup.add(pistolGroup);
 
     const fistGroup = new THREE.Group();
@@ -748,41 +794,111 @@
 
     const enemies = []; const enemyGroup = new THREE.Group(); scene.add(enemyGroup);
     
-    const baseMatSoldierBody = createRealisticTexture('#4a5d3f', 'dirt');
-    const baseMatSoldierHelmet = createRealisticTexture('#2b3524', 'metal');
-    const baseMatSoldierSkin = createRealisticTexture('#d2a679', 'dirt');
-    const sovietArmor = createRealisticTexture('#2a2b2e', 'metal'); 
-    const matGun = createRealisticTexture('#222222', 'metal');
-
+    // --- Phase 8.1 & 8.2: Humanoid Visuals & Proportions & BugFix ---
     function createHumanoidEnemy(isSoviet = false) {
       const g = new THREE.Group();
       const cBody = baseMatSoldierBody.clone(); const cHelm = baseMatSoldierHelmet.clone(); const cSkin = baseMatSoldierSkin.clone();
-      if(isSoviet) { cBody.color.setHex(0x5c4033); }
+      if(isSoviet) { cBody.color.setHex(0x523f33); } 
 
-      const torso = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.7, 0.3), cBody); torso.position.y = 0.85; g.add(torso);
+      const torso = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.65, 0.28), cBody); 
+      torso.position.y = 0.85; 
+      g.add(torso);
       
-      let armor = null;
+      const weaponMount = new THREE.Group();
+      weaponMount.position.set(0.1, 1.05, 0.15); // Adjusted mount height for aimed stance
+      g.add(weaponMount);
+
+      // [BUGFIX] armor 변수를 if블록 바깥에 미리 선언하여 스코프 에러를 차단합니다.
+      let armorMesh = null;
       if (isSoviet) {
-          armor = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.6, 0.1), sovietArmor);
-          armor.position.set(0, 0.85, 0.16); g.add(armor);
+          armorMesh = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.58, 0.12), sovietArmor);
+          armorMesh.position.set(0, 0.85, 0.12); g.add(armorMesh);
+
+          const barrel = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.04, 0.55), matGun); barrel.position.z = 0.22;
+          const stock = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.08, 0.35), matLeather); stock.position.z = -0.15;
+          const drumMag = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.05, 12), matGun);
+          drumMag.rotation.x = Math.PI / 2; drumMag.position.set(0, -0.06, 0.12);
+          weaponMount.add(barrel, stock, drumMag);
+      } else {
+          const backpack = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.45, 0.14), matLeather);
+          backpack.position.set(0, 0.92, -0.2); g.add(backpack);
+
+          const pouchL = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.14, 0.08), matLeather); pouchL.position.set(-0.14, 0.6, 0.16); g.add(pouchL);
+          const pouchR = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.14, 0.08), matLeather); pouchR.position.set(0.14, 0.6, 0.16); g.add(pouchR);
+
+          const rifleBody = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.07, 0.85), matLeather);
+          rifleBody.position.z = 0.15; 
+          const barrel = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.02, 0.4), matGun); 
+          barrel.position.set(0, 0.03, 0.42); 
+          rifleBody.add(barrel);
+          weaponMount.add(rifleBody);
       }
 
-      const head = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.35, 0.35), cSkin); head.position.y = 1.4; g.add(head);
-      const helmet = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.22, 0.2, 12), cHelm); helmet.position.y = 1.55; g.add(helmet);
-      const brim = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.05, 0.4), cHelm); brim.position.set(0, 1.45, 0.1); g.add(brim);
+      const headGroup = new THREE.Group(); 
+      headGroup.position.y = 1.34; 
+      g.add(headGroup);
       
-      const armL = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.6, 0.15), cBody); armL.position.set(-0.35, 0.9, 0); g.add(armL);
-      const armR = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.6, 0.15), cBody); armR.position.set(0.35, 0.9, 0); g.add(armR);
-      const legL = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.6, 0.2), cBody); legL.position.set(-0.15, 0.3, 0); g.add(legL);
-      const legR = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.6, 0.2), cBody); legR.position.set(0.15, 0.3, 0); g.add(legR);
-      const gun = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.1, 0.8), matGun); gun.position.set(0.25, 0.8, 0.3); g.add(gun);
+      const headMesh = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.28, 0.28), cSkin); 
+      headGroup.add(headMesh);
 
-      torso.userData = { isEnemy: true, parent: g, isHead: false, isSoviet: isSoviet };
-      if(armor) armor.userData = { isEnemy: true, parent: g, isHead: false, isSoviet: isSoviet, isArmor: true };
-      head.userData = { isEnemy: true, parent: g, isHead: true, isSoviet: isSoviet };
+      const eyeMat = new THREE.MeshBasicMaterial({color: 0x111111});
+      const eyeL = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.04, 0.02), eyeMat); eyeL.position.set(-0.06, 0.01, 0.145);
+      const eyeR = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.04, 0.02), eyeMat); eyeR.position.set(0.06, 0.01, 0.145);
+      
+      const browMat = new THREE.MeshBasicMaterial({color: 0x2e1d11});
+      const browL = new THREE.Mesh(new THREE.BoxGeometry(0.065, 0.02, 0.02), browMat); browL.position.set(-0.06, 0.05, 0.148); browL.rotation.z = -0.28;
+      const browR = new THREE.Mesh(new THREE.BoxGeometry(0.065, 0.02, 0.02), browMat); browR.position.set(0.06, 0.05, 0.148); browR.rotation.z = 0.28;
+      
+      const mouthMat = new THREE.MeshBasicMaterial({color: 0x3d1a10});
+      const mouth = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.025, 0.02), mouthMat); mouth.position.set(0, -0.06, 0.145);
+      
+      headGroup.add(eyeL, eyeR, browL, browR, mouth);
+
+      const helmet = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.26, 0.18, 16), cHelm); 
+      helmet.position.set(0, 1.50, 0); 
+      g.add(helmet);
+
+      const brim = new THREE.Mesh(new THREE.CylinderGeometry(0.27, 0.28, 0.03, 16), cHelm); 
+      brim.position.set(0, 1.43, 0.02); 
+      brim.rotation.x = -0.12; 
+      g.add(brim);
+
+      if (isSoviet) {
+          const star = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.05, 0.02), matRedStar);
+          star.position.set(0, 1.50, 0.24); star.rotation.z = Math.PI / 4; g.add(star);
+      } else {
+          const chinstrap = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.02, 0.2), matLeather);
+          chinstrap.position.set(0, 1.32, 0); g.add(chinstrap);
+      }
+      
+      const armL = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.55, 0.12), cBody); 
+      armL.position.set(-0.30, 0.85, 0); 
+      armL.geometry.translate(0, -0.2, 0); 
+      g.add(armL);
+      
+      const armR = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.55, 0.12), cBody); 
+      armR.position.set(0.30, 0.85, 0); 
+      armR.geometry.translate(0, -0.2, 0);
+      g.add(armR);
+
+      const legL = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.58, 0.18), cBody); 
+      legL.position.set(-0.13, 0.55, 0); 
+      legL.geometry.translate(0, -0.25, 0);
+      g.add(legL);
+      
+      const legR = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.58, 0.18), cBody); 
+      legR.position.set(0.13, 0.55, 0); 
+      legR.geometry.translate(0, -0.25, 0);
+      g.add(legR);
+
+      headGroup.children.forEach(child => { child.userData = { isEnemy: true, parent: g, isHead: true, isSoviet: isSoviet }; });
       helmet.userData = { isEnemy: true, parent: g, isHead: true, isSoviet: isSoviet };
+      brim.userData = { isEnemy: true, parent: g, isHead: true, isSoviet: isSoviet };
+      torso.userData = { isEnemy: true, parent: g, isHead: false, isSoviet: isSoviet };
+      
+      if(armorMesh) armorMesh.userData = { isEnemy: true, parent: g, isHead: false, isSoviet: isSoviet, isArmor: true };
 
-      return { group: g, armL, armR, legL, legR };
+      return { group: g, torso, armL, armR, legL, legR, weaponMount: weaponMount };
     }
 
     const spawnPoints = [ {x:0, z:-18}, {x:0, z:18}, {x:18, z:0}, {x:-18, z:0} ];
@@ -790,7 +906,6 @@
     function spawnEnemy(x, z) {
       if (enemies.length >= MAX_ENEMIES || (gameState !== 'BUNKER' && gameState !== 'FINAL_WAVE' && gameState !== 'BOSS' && gameState !== 'ATOMIC_WAVE' && gameState !== 'SUPER_HARD')) return;
       
-      // Phase 7: Dynamic scaling soviet chance for Normal mode
       let sovietChance = isHardMode ? 0.5 : 0.15;
       if (!isHardMode && !isSuperHard) {
           if (realTimeSeconds < 45) sovietChance = 0.0;
@@ -820,19 +935,20 @@
     function updateEnemies() {
       if (!isGameStarted || gameState === 'START' || gameState === 'ENDING' || gameState === 'TRANSITION') return;
       const now = Date.now();
+      frameCount++;
       
       let enemySpeed = isSuperHard ? 1.2 : (isHardMode ? 0.40 : 0.055); 
       let shootCooldown = isSuperHard ? 1 : (isHardMode ? 10 : 2200); 
       let enemyDamage = isSuperHard ? 0.001 : (isHardMode ? 0.01 : 2);     
       let digCooldown = isSuperHard ? 1 : (isHardMode ? 100 : 600);
 
-      // Phase 7 Dynamic Scaling for Normal Mode
+      // --- Phase 7 Dynamic Scaling ---
       if (!isHardMode && !isSuperHard && (gameState === 'BUNKER' || gameState === 'FINAL_WAVE')) {
           let timeFactor = Math.min(1.0, realTimeSeconds / 150);
-          enemySpeed = 0.055 + (0.2 * timeFactor); // Gets faster
-          shootCooldown = 2200 - (1800 * timeFactor); // Shoots more often
-          digCooldown = 600 - (450 * timeFactor); // Digs faster
-          enemyDamage = Math.max(0.1, 2 - (1.9 * timeFactor)); // Attack damage drops significantly
+          enemySpeed = 0.055 + (0.2 * timeFactor); 
+          shootCooldown = 2200 - (1800 * timeFactor); 
+          digCooldown = 600 - (450 * timeFactor); 
+          enemyDamage = Math.max(0.1, 2 - (1.9 * timeFactor)); 
       }
 
       if (gameState === 'ATOMIC_WAVE') {
@@ -848,17 +964,19 @@
         else { e.vy = 0; ePos.y = Math.floor(ePos.y - 0.1) + 1.0; e.isGrounded = true; }
         ePos.y += e.vy;
 
-        for(let j=0; j<enemies.length; j++) {
-            if(i===j) continue;
-            let otherPos = enemies[j].group.position;
-            let dx = ePos.x - otherPos.x; let dz = ePos.z - otherPos.z;
-            if(Math.abs(dx) > 0.8 || Math.abs(dz) > 0.8) continue; 
-            let distSq = dx*dx + dz*dz;
-            if(distSq < 0.36) { 
-                let pushX = (dx / Math.sqrt(distSq)) * 0.02; let pushZ = (dz / Math.sqrt(distSq)) * 0.02;
-                let nextX = ePos.x + pushX; let nextZ = ePos.z + pushZ;
-                if (!isSolid(nextX, ePos.y + 0.2, ePos.z) && !isSolid(nextX, ePos.y + 1.2, ePos.z)) ePos.x = nextX;
-                if (!isSolid(ePos.x, ePos.y + 0.2, nextZ) && !isSolid(ePos.x, ePos.y + 1.2, nextZ)) ePos.z = nextZ;
+        if (frameCount % 3 === i % 3) {
+            for(let j=0; j<enemies.length; j++) {
+                if(i===j) continue;
+                let otherPos = enemies[j].group.position;
+                let dx = ePos.x - otherPos.x; let dz = ePos.z - otherPos.z;
+                if(Math.abs(dx) > 0.8 || Math.abs(dz) > 0.8) continue; 
+                let distSq = dx*dx + dz*dz;
+                if(distSq < 0.36) { 
+                    let pushX = (dx / Math.sqrt(distSq)) * 0.02; let pushZ = (dz / Math.sqrt(distSq)) * 0.02;
+                    let nextX = ePos.x + pushX; let nextZ = ePos.z + pushZ;
+                    if (!isSolid(nextX, ePos.y + 0.2, ePos.z) && !isSolid(nextX, ePos.y + 1.2, ePos.z)) ePos.x = nextX;
+                    if (!isSolid(ePos.x, ePos.y + 0.2, nextZ) && !isSolid(ePos.x, ePos.y + 1.2, nextZ)) ePos.z = nextZ;
+                }
             }
         }
 
@@ -904,12 +1022,53 @@
           
           if (canMoveX || canMoveZ) {
             e.walkTime += (isHardMode ? 0.5 : 0.1);
-            e.rig.armL.rotation.x = Math.sin(e.walkTime) * 0.8; e.rig.armR.rotation.x = -Math.sin(e.walkTime) * 0.8;
-            e.rig.legL.rotation.x = -Math.sin(e.walkTime) * 0.8; e.rig.legR.rotation.x = Math.sin(e.walkTime) * 0.8;
+            e.rig.legL.rotation.x = -Math.sin(e.walkTime) * 0.7; 
+            e.rig.legR.rotation.x = Math.sin(e.walkTime) * 0.7;
+            e.rig.torso.rotation.z = Math.sin(e.walkTime * 0.5) * 0.04;
           }
           e.group.lookAt(player.pos.x, ePos.y, player.pos.z);
         } else {
-            e.rig.armL.rotation.x = 0; e.rig.armR.rotation.x = 0; e.rig.legL.rotation.x = 0; e.rig.legR.rotation.x = 0;
+            e.rig.legL.rotation.x = 0; e.rig.legR.rotation.x = 0; e.rig.torso.rotation.z = 0;
+        }
+
+        // --- Phase 8.1 & 8.2 & 8.3: Perfect Aiming Recoil Dynamics ---
+        let timeSinceShoot = now - e.lastShoot;
+        let isCombatAiming = (true3DDist < 25);
+
+        if (timeSinceShoot < 450) {
+            let t = timeSinceShoot / 450; 
+            let kick = 0;
+            if (t < 0.12) {
+                kick = (t / 0.12); // Fast up
+            } else {
+                kick = 1.0 - Math.pow((t - 0.12) / 0.88, 2); // Slow down curve
+            }
+
+            e.rig.weaponMount.position.set(0.1, 1.05, 0.15 - (kick * 0.12)); 
+            e.rig.weaponMount.rotation.x = -kick * 0.35; // Gun jumps UP
+            e.rig.torso.rotation.x = -kick * 0.18; // Torso flinches back
+            
+            // Arms tightly wrap around the jumping gun
+            e.rig.armR.rotation.set(-Math.PI / 2.2 + (kick * 0.3), 0, 0); 
+            e.rig.armL.rotation.set(-Math.PI / 2.5 + (kick * 0.3), 0, 0.4); 
+
+        } else if (isCombatAiming) {
+            e.rig.weaponMount.position.set(0.1, 1.05, 0.15);
+            e.rig.weaponMount.rotation.x = 0; 
+            e.rig.torso.rotation.x = 0.05; 
+
+            // Perfect resting aim stance
+            e.rig.armR.rotation.set(-Math.PI / 2.2, 0, 0); // Right hand horizontal, grabbing stock
+            e.rig.armL.rotation.set(-Math.PI / 2.5, 0, 0.4); // Left hand forward, wrapping barrel
+
+        } else {
+            e.rig.weaponMount.position.set(0.12, 0.95, 0.15);
+            e.rig.weaponMount.rotation.x = 0.4; // Point gun down when walking
+            e.rig.torso.rotation.x = (shouldChase ? Math.abs(Math.sin(e.walkTime)) * 0.04 : 0);
+
+            let armSwing = (shouldChase ? Math.sin(e.walkTime) * 0.6 : 0);
+            e.rig.armL.rotation.set(armSwing, 0, 0.1);
+            e.rig.armR.rotation.set(-armSwing, 0, -0.1);
         }
 
         if (true3DDist < 25 && now - e.lastShoot > (isHardMode ? shootCooldown : shootCooldown + Math.random()*500)) { 
@@ -928,10 +1087,11 @@
       }
     }
 
+    // --- Phase 9: Stalin Premium Model & Visual Effects ---
     function spawnStalinBoss() {
       const bossHp = isSuperHard ? 2500000 : (isHardMode ? 25000 : 3000); 
       stalin = { hp: bossHp, maxHp: bossHp, phase: 1, vy: 0, lastAtk: 0, isGrounded: false, walkTime: 0, rig: {}, group: new THREE.Group(),
-                 actionState: 'NORMAL', actionTimer: 0, nextPatternTime: Date.now() + 3000, smokeTimer: Date.now() + 2000, katyushaMarkers: [] };
+                 actionState: 'NORMAL', actionTimer: 0, nextPatternTime: Date.now() + 3000, smokeTimer: Date.now() + 2000, katyushaMarkers: [], smokeParticles: [] };
       
       const coatMat = createRealisticTexture('#1a252f', 'dirt').clone(); 
       const skinMat = createRealisticTexture('#e6b0aa', 'dirt').clone();
@@ -939,6 +1099,19 @@
       const hairMat = createRealisticTexture('#111111', 'dirt').clone();
       
       stalin.rig.torso = new THREE.Mesh(new THREE.BoxGeometry(1.0, 1.8, 0.7), coatMat); stalin.rig.torso.position.y = 1.0; stalin.group.add(stalin.rig.torso);
+      
+      // [Phase 9] Epaulets (금빛 견장)
+      const epauletMat = new THREE.MeshStandardMaterial({ color: 0xffd700, metalness: 0.8, roughness: 0.2 });
+      const epauletL = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.05, 0.2), epauletMat);
+      epauletL.position.set(-0.4, 0.9, 0); stalin.rig.torso.add(epauletL);
+      const epauletR = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.05, 0.2), epauletMat);
+      epauletR.position.set(0.4, 0.9, 0); stalin.rig.torso.add(epauletR);
+
+      // [Phase 9] Medals (가슴 훈장)
+      const medalMat = new THREE.MeshStandardMaterial({ color: 0xff0000, metalness: 0.9, roughness: 0.1 });
+      const medal = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.1, 0.05), medalMat);
+      medal.position.set(-0.25, 0.5, 0.36); stalin.rig.torso.add(medal);
+
       stalin.rig.head = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.5), skinMat); stalin.rig.head.position.y = 2.15; stalin.group.add(stalin.rig.head);
       stalin.rig.mustache = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.15, 0.1), hairMat); stalin.rig.mustache.position.set(0, 2.05, 0.26); stalin.group.add(stalin.rig.mustache);
       
@@ -948,6 +1121,11 @@
       stalin.rig.hat = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.35, 0.2, 16), hatMat); stalin.rig.hat.position.y = 2.45; stalin.group.add(stalin.rig.hat);
       const hatBrim = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.05, 0.5), hatMat); hatBrim.position.set(0, 2.35, 0.15); stalin.group.add(hatBrim);
       
+      // [Phase 9] Red Star on Hat (정모 붉은 별)
+      const starMat = new THREE.MeshStandardMaterial({ color: 0xff0000, metalness: 0.5, roughness: 0.5 });
+      const capStar = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 0.02), starMat);
+      capStar.position.set(0, 2.5, 0.32); capStar.rotation.z = Math.PI / 4; stalin.group.add(capStar);
+
       const pipe = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.05, 0.3), new THREE.MeshStandardMaterial({color:0x3e2723})); pipe.position.set(0.15, 2.0, 0.4); 
       const ember = new THREE.Mesh(new THREE.BoxGeometry(0.06,0.06,0.06), new THREE.MeshBasicMaterial({color:0xff5500})); ember.position.set(0,0,0.15); pipe.add(ember);
       stalin.group.add(pipe);
@@ -956,6 +1134,11 @@
       stalin.rig.armR = new THREE.Mesh(new THREE.BoxGeometry(0.3, 1.0, 0.3), coatMat); stalin.rig.armR.position.set(0.65, 1.4, 0); stalin.group.add(stalin.rig.armR);
       stalin.rig.legL = new THREE.Mesh(new THREE.BoxGeometry(0.35, 1.0, 0.35), createRealisticTexture('#111', 'metal')); stalin.rig.legL.position.set(-0.25, 0.5, 0); stalin.group.add(stalin.rig.legL);
       stalin.rig.legR = new THREE.Mesh(new THREE.BoxGeometry(0.35, 1.0, 0.35), createRealisticTexture('#111', 'metal')); stalin.rig.legR.position.set(0.25, 0.5, 0); stalin.group.add(stalin.rig.legR);
+
+      // [Phase 9] Red Aura Light (3페이즈 전용)
+      stalin.auraLight = new THREE.PointLight(0xff0000, 0, 10);
+      stalin.auraLight.position.set(0, 1, 0);
+      stalin.group.add(stalin.auraLight);
 
       stalin.group.position.set(0, 1, -10);
       stalin.rig.torso.userData = { isBoss: true }; stalin.rig.head.userData = { isBoss: true, isHead: true };
@@ -970,25 +1153,30 @@
     let weaponsEquipped = false;
     function equipStalinWeapons() {
         if(weaponsEquipped) return; weaponsEquipped = true;
-        const metal = createRealisticTexture('#888', 'metal'); const wood = createRealisticTexture('#5c4033', 'wood');
+        
+        // [Phase 9] Glowing Emissive Weapons
+        const bossWeaponMetal = new THREE.MeshStandardMaterial({color: 0x555555, metalness: 0.8, roughness: 0.2, emissive: 0xaa0000, emissiveIntensity: 0.8});
+        const wood = createRealisticTexture('#5c4033', 'wood');
         
         const hammerGroup = new THREE.Group();
         const hHandle = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 1.5), wood);
-        const hHead = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.3, 0.3), metal); hHead.position.set(0, 0.6, 0); 
+        const hHead = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.3, 0.3), bossWeaponMetal); hHead.position.set(0, 0.6, 0); 
         hammerGroup.add(hHandle); hammerGroup.add(hHead);
         hammerGroup.position.set(0, -0.4, 0.5); hammerGroup.rotation.x = Math.PI/2;
         stalin.rig.armR.add(hammerGroup);
 
         const sickleGroup = new THREE.Group();
         const sHandle = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 1.2), wood);
-        const sBlade = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.06, 8, 16, Math.PI*1.2), metal); sBlade.position.set(0, 0.5, -0.3); sBlade.rotation.y = Math.PI/2;
+        const sBlade = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.06, 8, 16, Math.PI*1.2), bossWeaponMetal); sBlade.position.set(0, 0.5, -0.3); sBlade.rotation.y = Math.PI/2;
         sickleGroup.add(sHandle); sickleGroup.add(sBlade);
         sickleGroup.position.set(0, -0.4, 0.5); sickleGroup.rotation.x = Math.PI/2;
         stalin.rig.armL.add(sickleGroup);
     }
 
     function applyPlayerKnockback(dir, amt) {
-        player.pos.x += dir.x * amt; player.pos.z += dir.z * amt; player.velocityY = 0.3; player.isGrounded = false;
+        player.pos.x += dir.x * amt; player.pos.z += dir.z * amt; 
+        if (player.isGrounded) player.velocityY = 0.3; // 에어본 무한 중첩(승천) 방지
+        player.isGrounded = false;
         const maxB = MAP_SIZE/2 - 1.5;
         player.pos.x = Math.max(-maxB, Math.min(maxB, player.pos.x)); player.pos.z = Math.max(-maxB, Math.min(maxB, player.pos.z));
     }
@@ -1000,6 +1188,22 @@
       
       stalin.group.visible = true; 
 
+      // [Phase 9] Dynamic Pipe Smoke Particles
+      if (Math.random() < 0.08) {
+          const smoke = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.05, 0.05), new THREE.MeshBasicMaterial({color: 0x888888, transparent: true, opacity: 0.8}));
+          smoke.position.set(sPos.x + 0.15, sPos.y + 2.0, sPos.z + 0.55);
+          scene.add(smoke);
+          stalin.smokeParticles.push({mesh: smoke, life: 1.0, vy: 0.02 + Math.random()*0.02, vx: (Math.random()-0.5)*0.01});
+      }
+      for (let i = stalin.smokeParticles.length - 1; i >= 0; i--) {
+          let p = stalin.smokeParticles[i];
+          p.mesh.position.y += p.vy;
+          p.mesh.position.x += p.vx;
+          p.life -= 0.02;
+          p.mesh.material.opacity = p.life;
+          if (p.life <= 0) { scene.remove(p.mesh); p.mesh.geometry.dispose(); p.mesh.material.dispose(); stalin.smokeParticles.splice(i, 1); }
+      }
+
       let currentPhase = stalin.phase;
       if (isHardMode || isSuperHard) {
           if (stalin.hp <= stalin.maxHp * 0.75 && currentPhase === 1) stalin.phase = 2;
@@ -1009,15 +1213,26 @@
           if (stalin.hp <= stalin.maxHp * 0.50 && currentPhase === 1) stalin.phase = 2;
       }
 
+      // [Phase 9] Visual Phase Transitions
       if (currentPhase !== stalin.phase) {
-          if (stalin.phase === 2) { showToast("[BOSS] 2페이즈: 227호 명령 발동!"); document.getElementById('boss-name').innerText = "STALIN - 227호 명령"; document.getElementById('boss-name').style.color = "#ff00ff"; stalin.rig.torso.material.color.setHex(0x5a1111); stalin.rig.eyeL.visible=true; stalin.rig.eyeR.visible=true; }
-          if (stalin.phase === 3) { showToast("[BOSS] 3페이즈: 피의 숙청과 정예병 소환!"); document.getElementById('boss-name').innerText = "STALIN - 피의 지배자"; }
-          if (stalin.phase === 4) { showToast("[BOSS] 4페이즈: 소비에트의 망치와 낫! 즉사 주의!"); document.getElementById('boss-name').innerText = "STALIN - 망치와 낫"; equipStalinWeapons(); }
+          if (stalin.phase === 2) { 
+              showToast("[BOSS] 2페이즈: 227호 명령 발동!"); document.getElementById('boss-name').innerText = "STALIN - 227호 명령"; document.getElementById('boss-name').style.color = "#ff00ff"; 
+              stalin.rig.torso.material.color.setHex(0x5a1111); 
+              stalin.rig.eyeL.visible=true; stalin.rig.eyeR.visible=true; 
+          }
+          if (stalin.phase === 3) { 
+              showToast("[BOSS] 3페이즈: 피의 숙청과 정예병 소환!"); document.getElementById('boss-name').innerText = "STALIN - 피의 지배자"; 
+              stalin.auraLight.intensity = 2.0; // Red Aura ON
+          }
+          if (stalin.phase === 4) { 
+              showToast("[BOSS] 4페이즈: 소비에트의 망치와 낫! 즉사 주의!"); document.getElementById('boss-name').innerText = "STALIN - 망치와 낫"; 
+              equipStalinWeapons(); // Glowing Weapons
+          }
       }
 
       let speed = 0.045; let atkCooldown = 1500; let dmg = 8;
       if (isSuperHard) {
-          speed = 0.8; atkCooldown = 10; dmg = 1; 
+          speed = 0.8; atkCooldown = 300; dmg = 5; // 쿨타임 정상화(프레임단위 타격 방지)
       } else if (isHardMode) {
           if (stalin.phase === 1) speed = 0.08;
           if (stalin.phase === 2) speed = 0.12;
@@ -1233,6 +1448,12 @@
 
       player.isMoving = (_moveVec.lengthSq() > 0 || player.velocityY !== 0);
 
+      // Phase 7: Camera shake when shooting
+      if (player.isFlinching) {
+          camera.rotation.x += (Math.random() - 0.5) * 0.05;
+          camera.rotation.y += (Math.random() - 0.5) * 0.05;
+      }
+
       if (_moveVec.lengthSq() > 0) {
         _moveVec.normalize().multiplyScalar(player.speed); _moveVec.applyAxisAngle(new THREE.Vector3(0, 1, 0), player.rotY);
         let nextX = player.pos.x + _moveVec.x; let nextZ = player.pos.z + _moveVec.z;
@@ -1315,31 +1536,37 @@
       initAudio();
 
       const rayDir = camera.getWorldDirection(new THREE.Vector3());
-      const pMuzzlePos = camera.position.clone().add(rayDir.clone().multiplyScalar(0.5)).add(new THREE.Vector3(0, -0.1, 0));
+      const camPos = camera.position.clone(); // 정중앙 십자선 기준 정확한 물리연산 시작점
       
-      const pStart = pMuzzlePos.clone().add(rayDir.clone().multiplyScalar(-0.8));
-      const hitWall = fastVoxelRaycast(pStart, rayDir, 25);
+      const hitWall = fastVoxelRaycast(camPos, rayDir, 25);
+      let finalHitPos = hitWall ? hitWall.point : camPos.clone().add(rayDir.clone().multiplyScalar(25));
 
       if (player.activeSlot === 1) { 
         if (player.isReloading || player.ammoClip <= 0) { if(player.ammoClip<=0) triggerReload(); return; }
         player.ammoClip--; updateHUD(); sfx.shoot();
         
-        // Phase 7 Weapon Balance: Camera Shake added for better punchy feel
+        // 사격 타격감 카메라 쉐이크
+        player.isFlinching = true;
+        setTimeout(() => { player.isFlinching = false; }, 50);
+
         pistolGroup.rotation.x = 0.3; pistolGroup.position.z = -0.10;
         camera.position.y += 0.03; 
         setTimeout(() => { pistolGroup.rotation.x = 0; pistolGroup.position.z = -0.15; camera.position.y -= 0.03; }, 80); 
         
+        // 정중앙(크로스헤어) 기준 적군 명중(Raycaster) 판정 
         const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(0, 0), camera);
         const hitEnemies = ray.intersectObjects(enemyGroup.children, true); 
         const hitBoss = (gameState === 'BOSS' || gameState === 'SUPER_HARD') && stalin ? ray.intersectObjects(stalin.group.children, true) : [];
         const allHits = [...hitEnemies, ...hitBoss].sort((a,b) => a.distance - b.distance);
 
-        let lastHitPos = hitWall ? hitWall.point : pMuzzlePos.clone().add(rayDir.clone().multiplyScalar(25));
-        
         if (allHits.length > 0) {
             const hitEnemySet = new Set();
             for (let i = 0; i < allHits.length; i++) {
+                // 벽 뒤에 있는 적은 무시
                 if (hitWall && hitWall.distance < allHits[i].distance) break;
+                
+                // 총알 궤적(Tracer)이 적의 몸에 딱 꽂히도록 타겟 좌표 갱신
+                if (i === 0) finalHitPos = allHits[i].point;
                 
                 const hitObj = allHits[i].object;
                 
@@ -1379,13 +1606,16 @@
                         const idx = enemies.indexOf(en);
                         if (idx > -1) enemies.splice(idx, 1);
                         if(Math.random() < 0.35) addScrap(en.isSoviet ? 3 : 1);
-                        // Phase 7 Weapon Balance: 20% chance to drop +2 reserve ammo
                         if(Math.random() < 0.20) { player.ammoReserve += 2; showToast("[AMMO] 예비 탄약 +2 획득"); updateHUD(); }
                     }
                 }
             }
         }
-        createBulletTracer(pMuzzlePos, lastHitPos);
+        
+        // [FIX] 화면 중앙이 아닌 3D 권총의 '진짜 총구 좌표'에서부터 Tracer 궤적을 렌더링
+        const visualMuzzlePos = new THREE.Vector3();
+        pMuzzle.getWorldPosition(visualMuzzlePos);
+        createBulletTracer(visualMuzzlePos, finalHitPos);
       } 
       else if (player.activeSlot === 2) { 
         if (isPunching) return;
@@ -1396,10 +1626,10 @@
         setTimeout(() => { fistL.position.z = -0.25; fistL.position.y = -0.18; fistL.rotation.x = 0; fistL.rotation.z = 0; }, punchSpeed * 100);
         setTimeout(() => { 
             fistR.position.z = -0.5; fistR.position.y = -0.1; fistR.rotation.x = -0.5; fistR.rotation.z = -0.3;
-            setTimeout(() => { fistR.position.z = -0.25; fistR.position.y = -0.18; fistR.rotation.x = 0; fistR.rotation.z = 0; isPunching = false; }, punchSpeed * 100); 
+            setTimeout(() => { fistR.position.z = -0.25; fistR.position.y = -0.18; fistR.rotation.x = 0; fistR.rotation.z = 0; isPunching = false; }, punchSpeed * 150); 
         }, punchSpeed * 150);
 
-        const punchWall = fastVoxelRaycast(pStart, rayDir, PUNCH_RANGE + 0.8);
+        const punchWall = fastVoxelRaycast(camPos, rayDir, PUNCH_RANGE + 0.8);
         const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(0, 0), camera);
         const hitEnemies = ray.intersectObjects(enemyGroup.children, true); 
         
@@ -1437,7 +1667,7 @@
         }
       }
       else if (player.activeSlot === 3) { 
-        const digWall = fastVoxelRaycast(pStart, rayDir, 4.5);
+        const digWall = fastVoxelRaycast(camPos, rayDir, 4.5);
         if (digWall) {
           const v = digWall.voxel;
           if (v.type === 'bedrock' || v.type === 'portal') { showToast("[SYSTEM] 절대 파괴 불가 지형"); return; }
@@ -1474,7 +1704,7 @@
         if(!isSuperHard) setTimeout(() => selectTool(1), 300);
 
         sfx.explosion();
-        let target = hitWall ? hitWall.point : pMuzzlePos.clone().add(rayDir.clone().multiplyScalar(15));
+        let target = hitWall ? hitWall.point : camPos.clone().add(rayDir.clone().multiplyScalar(15));
         
         const expl = new THREE.Mesh(explGeo, new THREE.MeshBasicMaterial({color: 0xff4400, transparent: true, opacity: 0.9}));
         expl.position.copy(target); scene.add(expl);
@@ -1484,19 +1714,19 @@
         }, 50);
 
         const cx = Math.floor(target.x); const cy = Math.floor(target.y); const cz = Math.floor(target.z);
-        // Phase 7 Panzerfaust Balance: Reduced radius from 3 to 2, forced break set to FALSE so it doesn't break concrete walls.
-        for(let dx=-2; dx<=2; dx++) for(let dy=-2; dy<=2; dy++) for(let dz=-2; dz<=2; dz++) {
+        
+        for(let dx=-1; dx<=1; dx++) for(let dy=-1; dy<=1; dy++) for(let dz=-1; dz<=1; dz++) {
             removeVoxel(cx+dx, cy+dy, cz+dz, false);
         }
 
         for (let i = enemies.length - 1; i >= 0; i--) {
-            if (enemies[i].group.position.distanceTo(target) < 5.0) {
+            if (enemies[i].group.position.distanceTo(target) < 4.0) {
                 enemyGroup.remove(enemies[i].group); enemies.splice(i, 1);
                 if(Math.random() < 0.35) addScrap(1);
                 if(Math.random() < 0.20) { player.ammoReserve += 2; showToast("[AMMO] 예비 탄약 +2 획득"); updateHUD(); }
             }
         }
-        if (stalin && stalin.group.position.distanceTo(target) < 5.0) {
+        if (stalin && stalin.group.position.distanceTo(target) < 4.0) {
             stalin.hp -= 150; flashEnemyColor(stalin.group.children); showToast("로켓 명중! (보스에게는 150 피해)");
         }
       }
@@ -1660,6 +1890,7 @@
       player.baseSpeed = 0.11 + (upgrades.speed * 0.005);
       player.speed = player.baseSpeed;
       
+      // Phase 7: Ammo upgrade gives raw clip size now.
       player.maxClip = 6 + (upgrades.ammo * 3);
       
       if (isSuperHard) {
@@ -1732,7 +1963,6 @@
             let spawnCount = isHardMode ? (Math.floor(Math.random() * 10) + 5) : (Math.floor(Math.random() * 3) + 1); 
             let spawnInterval = isHardMode ? (Math.floor(Math.random() * 3) + 2) : 6;
             
-            // Phase 7 Dynamic Spawn Interval for Normal Mode
             if (!isHardMode && !isSuperHard) {
                 if (realTimeSeconds < 45) { spawnInterval = Math.floor(Math.random() * 3) + 6; } 
                 else if (realTimeSeconds < 100) { spawnInterval = Math.floor(Math.random() * 2) + 4; spawnCount += 1; } 
@@ -1839,7 +2069,7 @@
       
       if (!collectedEndings.includes(type)) { 
           collectedEndings.push(type); 
-          localStorage.setItem('myBunkerEndings', JSON.stringify(collectedEndings)); 
+          safeSetItem('myBunkerEndings', collectedEndings); 
       }
 
       const modal = document.getElementById('ending-modal'); const title = document.getElementById('ending-title');
