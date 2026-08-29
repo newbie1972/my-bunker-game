@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>나의 벙커 (My Bunker) - Phase 9 (Stalin Overhaul Fix)</title>
+  <title>나의 벙커 (My Bunker) - Phase 10 (Historical Disclaimer)</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; touch-action: none; }
     body, html { width: 100%; height: 100%; overflow: hidden; background-color: #000; font-family: 'Courier New', Courier, monospace; color: #fff; overscroll-behavior: none; }
@@ -83,7 +83,6 @@
     @keyframes scrapPop { 0% { transform: scale(1); } 50% { transform: scale(1.3); color: #f1c40f; } 100% { transform: scale(1); } }
     .scrap-pop { animation: scrapPop 0.3s ease-out; }
 
-    /* 모바일 가로모드용 자동 스케일링 (화면 높이 500px 이하) */
     @media screen and (max-height: 500px) {
         #hud { top: 40px; left: 10px; right: 10px; }
         .hud-card { padding: 8px 10px; font-size: 11px; }
@@ -180,7 +179,28 @@
     </div>
   </div>
 
-  <div id="start-modal" class="modal">
+  <!-- Phase 10: 윤리적 고지 및 면책 조항 모달 (가장 높은 z-index) -->
+  <div id="disclaimer-modal" class="modal" style="z-index: 100; display: flex;">
+    <div style="background: rgba(15, 15, 15, 0.95); border: 2px solid #e74c3c; padding: 30px; border-radius: 8px; max-width: 550px; text-align: left; box-shadow: 0 10px 40px rgba(231,76,60,0.4);">
+        <h1 style="font-size: 26px; color: #e74c3c; text-align: center; margin-bottom: 20px; font-family: 'Courier New', sans-serif; letter-spacing: 1px;">⚠️ 역사적 고지 및 면책 조항</h1>
+        <div style="color: #ccc; font-size: 14px; line-height: 1.7; margin-bottom: 25px; font-family: sans-serif;">
+            <p style="margin-bottom: 12px;">본 게임 <b>『나의 벙커(My Bunker)』</b>는 1945년 제2차 세계대전 말기를 모티브로 한 가상의 생존 시뮬레이션 게임입니다.</p>
+            <p style="margin-bottom: 12px;">본 작품은 순수한 오락적 목적의 픽션이며, <b>파시즘, 나치즘, 전체주의를 포함한 어떠한 형태의 전쟁 범죄, 인권 침해, 특정 이념을 결코 옹호하거나 미화하지 않습니다.</b></p>
+            <p>게임에 등장하는 모든 세력, 인물, 복장 등은 역사적 모티브를 둔 가상의 장치일 뿐이며, 개발진은 전쟁의 비극을 엄중히 인식하고 평화와 인류 보편의 가치를 지향합니다.</p>
+        </div>
+        <div style="text-align: center; margin-bottom: 25px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 4px; border: 1px solid #333;">
+            <label style="color: #fff; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: bold;">
+                <input type="checkbox" id="disclaimer-checkbox" style="width: 20px; height: 20px; cursor: pointer; accent-color: #e74c3c;">
+                위 내용을 충분히 숙지하였으며, 이에 동의합니다.
+            </label>
+        </div>
+        <div style="text-align: center;">
+            <button id="disclaimer-btn" class="platform-btn" style="background: #555; border-color: #333; color: #888; pointer-events: none; width: 100%; letter-spacing: 2px;" onclick="acceptDisclaimer()">동의 및 게임 입장 (ENTER)</button>
+        </div>
+    </div>
+  </div>
+
+  <div id="start-modal" class="modal" style="display: none; z-index: 50;">
     <h1>MY BUNKER</h1>
     <h2>1945 BERLIN: THE LAST STAND</h2>
     
@@ -313,14 +333,43 @@
             const raw = localStorage.getItem(key); 
             if(!raw) return defaultVal;
             try {
-                // 시도 1: 암호화된(Base64) 데이터 복호화 시도
                 return JSON.parse(decodeURIComponent(atob(raw))); 
             } catch (e) {
-                // 시도 2: 만약 복호화에 실패했다면(과거 구버전 암호화 안된 데이터), 그대로 파싱 시도
                 return JSON.parse(raw);
             }
         } catch(e) { return defaultVal; }
     }
+
+    // --- Phase 10: Disclaimer Logic ---
+    document.getElementById('disclaimer-checkbox').addEventListener('change', function(e) {
+        const btn = document.getElementById('disclaimer-btn');
+        if(e.target.checked) {
+            btn.style.background = '#e74c3c';
+            btn.style.borderColor = '#c0392b';
+            btn.style.color = '#fff';
+            btn.style.pointerEvents = 'auto';
+        } else {
+            btn.style.background = '#555';
+            btn.style.borderColor = '#333';
+            btn.style.color = '#888';
+            btn.style.pointerEvents = 'none';
+        }
+    });
+
+    function acceptDisclaimer() {
+        safeSetItem('myBunkerDisclaimerAgreed', true);
+        document.getElementById('disclaimer-modal').style.display = 'none';
+        document.getElementById('start-modal').style.display = 'flex';
+    }
+
+    window.addEventListener('load', () => {
+        // If already agreed, bypass disclaimer
+        if(safeGetItem('myBunkerDisclaimerAgreed', false)) {
+            document.getElementById('disclaimer-modal').style.display = 'none';
+            document.getElementById('start-modal').style.display = 'flex';
+        }
+    });
+
 
     let globalBgmVolume = parseFloat(localStorage.getItem('myBunkerBgmVol') ?? '1.0');
     let globalSfxVolume = parseFloat(localStorage.getItem('myBunkerSfxVol') ?? '1.0');
@@ -582,7 +631,6 @@
       return new THREE.MeshStandardMaterial({ map: map, roughness: type === 'metal' ? 0.3 : (type === 'dirt' ? 1.0 : 0.8), metalness: type === 'metal' ? 0.8 : 0.05 });
     }
 
-    // --- High Quality Materials (Phase 8 & 9) ---
     const matLeather = createRealisticTexture('#5c4033', 'dirt'); 
     const matRedStar = new THREE.MeshStandardMaterial({color: 0xdd1111, roughness: 0.6});
     const matGun = createRealisticTexture('#1e1e1e', 'metal');
@@ -758,7 +806,6 @@
     const pGrip = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.12, 0.06), gunWood); pGrip.position.set(0, -0.02, 0.1); pGrip.rotation.x = Math.PI/8;
     const pTrigger = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.04, 0.01), gunMetal); pTrigger.position.set(0, 0.02, 0.03);
     
-    // [FIX] 권총의 진짜 총구 좌표(Muzzle)를 식별하기 위한 투명한 3D 오브젝트 추가
     const pMuzzle = new THREE.Object3D();
     pMuzzle.position.set(0, 0.06, -0.28); 
     pistolGroup.add(pMuzzle);
@@ -794,7 +841,6 @@
 
     const enemies = []; const enemyGroup = new THREE.Group(); scene.add(enemyGroup);
     
-    // --- Phase 8.1 & 8.2: Humanoid Visuals & Proportions & BugFix ---
     function createHumanoidEnemy(isSoviet = false) {
       const g = new THREE.Group();
       const cBody = baseMatSoldierBody.clone(); const cHelm = baseMatSoldierHelmet.clone(); const cSkin = baseMatSoldierSkin.clone();
@@ -805,10 +851,9 @@
       g.add(torso);
       
       const weaponMount = new THREE.Group();
-      weaponMount.position.set(0.1, 1.05, 0.15); // Adjusted mount height for aimed stance
+      weaponMount.position.set(0.1, 1.05, 0.15); 
       g.add(weaponMount);
 
-      // [BUGFIX] armor 변수를 if블록 바깥에 미리 선언하여 스코프 에러를 차단합니다.
       let armorMesh = null;
       if (isSoviet) {
           armorMesh = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.58, 0.12), sovietArmor);
@@ -942,7 +987,6 @@
       let enemyDamage = isSuperHard ? 0.001 : (isHardMode ? 0.01 : 2);     
       let digCooldown = isSuperHard ? 1 : (isHardMode ? 100 : 600);
 
-      // --- Phase 7 Dynamic Scaling ---
       if (!isHardMode && !isSuperHard && (gameState === 'BUNKER' || gameState === 'FINAL_WAVE')) {
           let timeFactor = Math.min(1.0, realTimeSeconds / 150);
           enemySpeed = 0.055 + (0.2 * timeFactor); 
@@ -1031,7 +1075,6 @@
             e.rig.legL.rotation.x = 0; e.rig.legR.rotation.x = 0; e.rig.torso.rotation.z = 0;
         }
 
-        // --- Phase 8.1 & 8.2 & 8.3: Perfect Aiming Recoil Dynamics ---
         let timeSinceShoot = now - e.lastShoot;
         let isCombatAiming = (true3DDist < 25);
 
@@ -1039,16 +1082,15 @@
             let t = timeSinceShoot / 450; 
             let kick = 0;
             if (t < 0.12) {
-                kick = (t / 0.12); // Fast up
+                kick = (t / 0.12); 
             } else {
-                kick = 1.0 - Math.pow((t - 0.12) / 0.88, 2); // Slow down curve
+                kick = 1.0 - Math.pow((t - 0.12) / 0.88, 2); 
             }
 
             e.rig.weaponMount.position.set(0.1, 1.05, 0.15 - (kick * 0.12)); 
-            e.rig.weaponMount.rotation.x = -kick * 0.35; // Gun jumps UP
-            e.rig.torso.rotation.x = -kick * 0.18; // Torso flinches back
+            e.rig.weaponMount.rotation.x = -kick * 0.35; 
+            e.rig.torso.rotation.x = -kick * 0.18; 
             
-            // Arms tightly wrap around the jumping gun
             e.rig.armR.rotation.set(-Math.PI / 2.2 + (kick * 0.3), 0, 0); 
             e.rig.armL.rotation.set(-Math.PI / 2.5 + (kick * 0.3), 0, 0.4); 
 
@@ -1057,13 +1099,12 @@
             e.rig.weaponMount.rotation.x = 0; 
             e.rig.torso.rotation.x = 0.05; 
 
-            // Perfect resting aim stance
-            e.rig.armR.rotation.set(-Math.PI / 2.2, 0, 0); // Right hand horizontal, grabbing stock
-            e.rig.armL.rotation.set(-Math.PI / 2.5, 0, 0.4); // Left hand forward, wrapping barrel
+            e.rig.armR.rotation.set(-Math.PI / 2.2, 0, 0); 
+            e.rig.armL.rotation.set(-Math.PI / 2.5, 0, 0.4); 
 
         } else {
             e.rig.weaponMount.position.set(0.12, 0.95, 0.15);
-            e.rig.weaponMount.rotation.x = 0.4; // Point gun down when walking
+            e.rig.weaponMount.rotation.x = 0.4; 
             e.rig.torso.rotation.x = (shouldChase ? Math.abs(Math.sin(e.walkTime)) * 0.04 : 0);
 
             let armSwing = (shouldChase ? Math.sin(e.walkTime) * 0.6 : 0);
@@ -1087,7 +1128,6 @@
       }
     }
 
-    // --- Phase 9: Stalin Premium Model & Visual Effects ---
     function spawnStalinBoss() {
       const bossHp = isSuperHard ? 2500000 : (isHardMode ? 25000 : 3000); 
       stalin = { hp: bossHp, maxHp: bossHp, phase: 1, vy: 0, lastAtk: 0, isGrounded: false, walkTime: 0, rig: {}, group: new THREE.Group(),
@@ -1100,14 +1140,12 @@
       
       stalin.rig.torso = new THREE.Mesh(new THREE.BoxGeometry(1.0, 1.8, 0.7), coatMat); stalin.rig.torso.position.y = 1.0; stalin.group.add(stalin.rig.torso);
       
-      // [Phase 9] Epaulets (금빛 견장)
       const epauletMat = new THREE.MeshStandardMaterial({ color: 0xffd700, metalness: 0.8, roughness: 0.2 });
       const epauletL = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.05, 0.2), epauletMat);
       epauletL.position.set(-0.4, 0.9, 0); stalin.rig.torso.add(epauletL);
       const epauletR = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.05, 0.2), epauletMat);
       epauletR.position.set(0.4, 0.9, 0); stalin.rig.torso.add(epauletR);
 
-      // [Phase 9] Medals (가슴 훈장)
       const medalMat = new THREE.MeshStandardMaterial({ color: 0xff0000, metalness: 0.9, roughness: 0.1 });
       const medal = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.1, 0.05), medalMat);
       medal.position.set(-0.25, 0.5, 0.36); stalin.rig.torso.add(medal);
@@ -1121,7 +1159,6 @@
       stalin.rig.hat = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.35, 0.2, 16), hatMat); stalin.rig.hat.position.y = 2.45; stalin.group.add(stalin.rig.hat);
       const hatBrim = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.05, 0.5), hatMat); hatBrim.position.set(0, 2.35, 0.15); stalin.group.add(hatBrim);
       
-      // [Phase 9] Red Star on Hat (정모 붉은 별)
       const starMat = new THREE.MeshStandardMaterial({ color: 0xff0000, metalness: 0.5, roughness: 0.5 });
       const capStar = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 0.02), starMat);
       capStar.position.set(0, 2.5, 0.32); capStar.rotation.z = Math.PI / 4; stalin.group.add(capStar);
@@ -1135,7 +1172,6 @@
       stalin.rig.legL = new THREE.Mesh(new THREE.BoxGeometry(0.35, 1.0, 0.35), createRealisticTexture('#111', 'metal')); stalin.rig.legL.position.set(-0.25, 0.5, 0); stalin.group.add(stalin.rig.legL);
       stalin.rig.legR = new THREE.Mesh(new THREE.BoxGeometry(0.35, 1.0, 0.35), createRealisticTexture('#111', 'metal')); stalin.rig.legR.position.set(0.25, 0.5, 0); stalin.group.add(stalin.rig.legR);
 
-      // [Phase 9] Red Aura Light (3페이즈 전용)
       stalin.auraLight = new THREE.PointLight(0xff0000, 0, 10);
       stalin.auraLight.position.set(0, 1, 0);
       stalin.group.add(stalin.auraLight);
@@ -1154,7 +1190,6 @@
     function equipStalinWeapons() {
         if(weaponsEquipped) return; weaponsEquipped = true;
         
-        // [Phase 9] Glowing Emissive Weapons
         const bossWeaponMetal = new THREE.MeshStandardMaterial({color: 0x555555, metalness: 0.8, roughness: 0.2, emissive: 0xaa0000, emissiveIntensity: 0.8});
         const wood = createRealisticTexture('#5c4033', 'wood');
         
@@ -1175,7 +1210,7 @@
 
     function applyPlayerKnockback(dir, amt) {
         player.pos.x += dir.x * amt; player.pos.z += dir.z * amt; 
-        if (player.isGrounded) player.velocityY = 0.3; // 에어본 무한 중첩(승천) 방지
+        if (player.isGrounded) player.velocityY = 0.3;
         player.isGrounded = false;
         const maxB = MAP_SIZE/2 - 1.5;
         player.pos.x = Math.max(-maxB, Math.min(maxB, player.pos.x)); player.pos.z = Math.max(-maxB, Math.min(maxB, player.pos.z));
@@ -1188,7 +1223,6 @@
       
       stalin.group.visible = true; 
 
-      // [Phase 9] Dynamic Pipe Smoke Particles
       if (Math.random() < 0.08) {
           const smoke = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.05, 0.05), new THREE.MeshBasicMaterial({color: 0x888888, transparent: true, opacity: 0.8}));
           smoke.position.set(sPos.x + 0.15, sPos.y + 2.0, sPos.z + 0.55);
@@ -1213,7 +1247,6 @@
           if (stalin.hp <= stalin.maxHp * 0.50 && currentPhase === 1) stalin.phase = 2;
       }
 
-      // [Phase 9] Visual Phase Transitions
       if (currentPhase !== stalin.phase) {
           if (stalin.phase === 2) { 
               showToast("[BOSS] 2페이즈: 227호 명령 발동!"); document.getElementById('boss-name').innerText = "STALIN - 227호 명령"; document.getElementById('boss-name').style.color = "#ff00ff"; 
@@ -1222,17 +1255,17 @@
           }
           if (stalin.phase === 3) { 
               showToast("[BOSS] 3페이즈: 피의 숙청과 정예병 소환!"); document.getElementById('boss-name').innerText = "STALIN - 피의 지배자"; 
-              stalin.auraLight.intensity = 2.0; // Red Aura ON
+              stalin.auraLight.intensity = 2.0; 
           }
           if (stalin.phase === 4) { 
               showToast("[BOSS] 4페이즈: 소비에트의 망치와 낫! 즉사 주의!"); document.getElementById('boss-name').innerText = "STALIN - 망치와 낫"; 
-              equipStalinWeapons(); // Glowing Weapons
+              equipStalinWeapons(); 
           }
       }
 
       let speed = 0.045; let atkCooldown = 1500; let dmg = 8;
       if (isSuperHard) {
-          speed = 0.8; atkCooldown = 300; dmg = 5; // 쿨타임 정상화(프레임단위 타격 방지)
+          speed = 0.8; atkCooldown = 300; dmg = 5;
       } else if (isHardMode) {
           if (stalin.phase === 1) speed = 0.08;
           if (stalin.phase === 2) speed = 0.12;
@@ -1448,7 +1481,6 @@
 
       player.isMoving = (_moveVec.lengthSq() > 0 || player.velocityY !== 0);
 
-      // Phase 7: Camera shake when shooting
       if (player.isFlinching) {
           camera.rotation.x += (Math.random() - 0.5) * 0.05;
           camera.rotation.y += (Math.random() - 0.5) * 0.05;
@@ -1536,7 +1568,7 @@
       initAudio();
 
       const rayDir = camera.getWorldDirection(new THREE.Vector3());
-      const camPos = camera.position.clone(); // 정중앙 십자선 기준 정확한 물리연산 시작점
+      const camPos = camera.position.clone(); 
       
       const hitWall = fastVoxelRaycast(camPos, rayDir, 25);
       let finalHitPos = hitWall ? hitWall.point : camPos.clone().add(rayDir.clone().multiplyScalar(25));
@@ -1545,7 +1577,6 @@
         if (player.isReloading || player.ammoClip <= 0) { if(player.ammoClip<=0) triggerReload(); return; }
         player.ammoClip--; updateHUD(); sfx.shoot();
         
-        // 사격 타격감 카메라 쉐이크
         player.isFlinching = true;
         setTimeout(() => { player.isFlinching = false; }, 50);
 
@@ -1553,7 +1584,6 @@
         camera.position.y += 0.03; 
         setTimeout(() => { pistolGroup.rotation.x = 0; pistolGroup.position.z = -0.15; camera.position.y -= 0.03; }, 80); 
         
-        // 정중앙(크로스헤어) 기준 적군 명중(Raycaster) 판정 
         const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(0, 0), camera);
         const hitEnemies = ray.intersectObjects(enemyGroup.children, true); 
         const hitBoss = (gameState === 'BOSS' || gameState === 'SUPER_HARD') && stalin ? ray.intersectObjects(stalin.group.children, true) : [];
@@ -1562,10 +1592,8 @@
         if (allHits.length > 0) {
             const hitEnemySet = new Set();
             for (let i = 0; i < allHits.length; i++) {
-                // 벽 뒤에 있는 적은 무시
                 if (hitWall && hitWall.distance < allHits[i].distance) break;
                 
-                // 총알 궤적(Tracer)이 적의 몸에 딱 꽂히도록 타겟 좌표 갱신
                 if (i === 0) finalHitPos = allHits[i].point;
                 
                 const hitObj = allHits[i].object;
@@ -1612,7 +1640,6 @@
             }
         }
         
-        // [FIX] 화면 중앙이 아닌 3D 권총의 '진짜 총구 좌표'에서부터 Tracer 궤적을 렌더링
         const visualMuzzlePos = new THREE.Vector3();
         pMuzzle.getWorldPosition(visualMuzzlePos);
         createBulletTracer(visualMuzzlePos, finalHitPos);
@@ -1890,7 +1917,6 @@
       player.baseSpeed = 0.11 + (upgrades.speed * 0.005);
       player.speed = player.baseSpeed;
       
-      // Phase 7: Ammo upgrade gives raw clip size now.
       player.maxClip = 6 + (upgrades.ammo * 3);
       
       if (isSuperHard) {
