@@ -12,6 +12,9 @@
     #vignette { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.85) 120%); pointer-events: none; z-index: 5; transition: background 0.5s; }
     #gas-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, transparent 30%, rgba(46, 204, 113, 0.4) 100%); pointer-events: none; z-index: 6; opacity: 0; transition: opacity 0.5s; box-shadow: inset 0 0 50px rgba(46,204,113,0.3); }
     #crosshair { position: absolute; top: 50%; left: 50%; width: 6px; height: 6px; margin-top: -3px; margin-left: -3px; background: rgba(255, 255, 255, 0.8); border-radius: 50%; pointer-events: none; z-index: 10; box-shadow: 0 0 4px #000; }
+    #hit-marker { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(1); width: 20px; height: 20px; pointer-events: none; z-index: 11; opacity: 0; transition: opacity 0.1s ease-out, transform 0.1s ease-out; display: flex; justify-content: center; align-items: center; }
+    #hit-marker svg { width: 100%; height: 100%; stroke: rgba(255,255,255,0.9); stroke-width: 2.5; stroke-linecap: round; }
+    .hit-critical svg { stroke: #e74c3c !important; stroke-width: 3.5 !important; filter: drop-shadow(0 0 5px rgba(231,76,60,0.8)); }
     #compass-container { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); background: rgba(10, 10, 15, 0.8); border: 1px solid #444; border-radius: 20px; padding: 6px 20px; font-size: 12px; font-weight: bold; color: #e67e22; z-index: 15; text-align: center; pointer-events: none; box-shadow: 0 4px 6px rgba(0,0,0,0.5); backdrop-filter: blur(4px); text-transform: uppercase; letter-spacing: 1px; }
 
     .icon-inline { width: 1.2em; height: 1.2em; vertical-align: -0.2em; fill: currentColor; }
@@ -57,6 +60,12 @@
     .guide-box h3 { color: #e67e22; font-size: 16px; margin-bottom: 10px; text-align: center; }
     .guide-box ul { list-style: none; padding: 0; color: #ccc; font-size: 13px; line-height: 1.6; }
     .guide-box li::before { content: "• "; color: #e74c3c; font-weight: bold; }
+
+    /* 모달 스크롤바 투명화 (UI 감성 유지) */
+    #upgrade-list::-webkit-scrollbar { display: none; }
+    #upgrade-list { -ms-overflow-style: none; scrollbar-width: none; }
+    #collection-list::-webkit-scrollbar { display: none; }
+    #collection-list { -ms-overflow-style: none; scrollbar-width: none; }
 
     .upgrade-item { background: rgba(20, 20, 20, 0.8); border: 1px solid #444; border-radius: 6px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; text-align: left; gap: 15px; }
     .upgrade-info { flex: 1; }
@@ -127,6 +136,9 @@
   <div id="gas-overlay"></div>
   <div id="blood-overlay"></div>
   <div id="crosshair"></div>
+  <div id="hit-marker">
+      <svg viewBox="0 0 24 24" fill="none"><line x1="6" y1="6" x2="18" y2="18"></line><line x1="18" y1="6" x2="6" y2="18"></line></svg>
+  </div>
   <div id="damage-flash"></div>
   <div id="fade-screen"></div>
   <div id="toast">MESSAGE</div>
@@ -376,7 +388,12 @@
 
     // --- Phase 6: Scrap & Upgrades Variables ---
     let scrap = parseInt(safeGetItem('myBunkerScrap', 0)) || 0;
-    let upgrades = safeGetItem('myBunkerUpgrades', { hp: 0, pickaxe: 0, ammo: 0, speed: 0 });
+    let upgrades = safeGetItem('myBunkerUpgrades', { hp: 0, pickaxe: 0, ammo: 0, speed: 0, regen: 0, fist: 0 });
+    
+    // 호환성: 기존 유저에게 새 업그레이드 항목(regen, fist) 기본값 추가
+    if (upgrades.regen === undefined) upgrades.regen = 0;
+    if (upgrades.fist === undefined) upgrades.fist = 0;
+
     document.getElementById('scrap-val').innerText = scrap;
 
     const UPGRADE_COSTS = [35, 65, 100, 150, 200];
@@ -384,7 +401,9 @@
         hp: { title: '방탄판 보강 (Max HP +20)', desc: '지하 비축고의 철판을 덧대어 최대 체력을 상승시킵니다.', maxLv: 5 },
         pickaxe: { title: '채굴 아드레날린 (체력 피흡)', desc: '블록 파괴 시마다 일정 확률(10~30%)로 잃은 체력을 즉시 +2 회복합니다.', maxLv: 3 },
         ammo: { title: '확장 탄창 (장전 수 +3발)', desc: 'Luger 권총의 탄창 용량이 증가하여 재장전 없이 더 많이 사격합니다.', maxLv: 5 },
-        speed: { title: '경량 전투화 (이속 상승)', desc: '불필요한 장비를 줄여 이동 속도가 소폭 상승합니다.', maxLv: 5 }
+        speed: { title: '경량 전투화 (이속 상승)', desc: '불필요한 장비를 줄여 이동 속도가 소폭 상승합니다.', maxLv: 5 },
+        regen: { title: '응급 처치술 (자동 회복)', desc: '가만히 은폐 시 체력 자동 회복 대기 시간이 감소하고 회복량이 증가합니다.', maxLv: 3 },
+        fist: { title: '근접 격투술 (주먹 강화)', desc: '주먹의 타격 사거리가 늘어나고 펀치 연사 속도가 빨라집니다.', maxLv: 3 }
     };
 
     function addScrap(amount) {
@@ -923,7 +942,7 @@
       
       const armR = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.55, 0.12), cBody); 
       armR.position.set(0.30, 0.85, 0); 
-      armR.geometry.translate(0, -0.2, 0);
+      armR.geometry.translate(0, -0.25, 0);
       g.add(armR);
 
       const legL = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.58, 0.18), cBody); 
@@ -1561,6 +1580,16 @@
         ambientLight.color.setHex(0x00ffaa); ambientLight.intensity = 1.0;
     }
 
+    let hitMarkerTimeout;
+    function showHitMarker(isCritical = false) {
+        const hm = document.getElementById('hit-marker');
+        if (!hm) return;
+        if (isCritical) hm.classList.add('hit-critical'); else hm.classList.remove('hit-critical');
+        hm.style.opacity = '1'; hm.style.transform = 'translate(-50%, -50%) scale(1.3)';
+        if (hitMarkerTimeout) clearTimeout(hitMarkerTimeout);
+        hitMarkerTimeout = setTimeout(() => { hm.style.opacity = '0'; hm.style.transform = 'translate(-50%, -50%) scale(1.0)'; }, 150);
+    }
+
     let isPunching = false;
     function triggerPrimaryAction(e) {
       if(e) { e.preventDefault(); e.stopPropagation(); }
@@ -1599,7 +1628,7 @@
                 const hitObj = allHits[i].object;
                 
                 if (hitObj.userData.isBoss) {
-                    let dmg = 35; if (hitObj.userData.isHead) { dmg = 100; showToast("[CRITICAL] 헤드샷 관통!"); }
+                    let dmg = 35; if (hitObj.userData.isHead) { dmg = 100; showToast("[CRITICAL] 헤드샷 관통!"); showHitMarker(true); } else { showHitMarker(false); }
                     if (stalin.actionState === 'WHIRLWIND') { dmg *= 0.5; showToast("대회전! 데미지 반감!"); }
                     stalin.hp -= dmg; flashEnemyColor(stalin.group.children);
                     continue; 
@@ -1614,9 +1643,11 @@
                         if (hitObj.userData.isArmor || !isHead) {
                             showToast("[ARMOR] 도탄 됨! (피해 감소)");
                             en.hp -= 5;
+                            showHitMarker(false);
                         } else {
                             showToast("[HEADSHOT] 치명타 및 중화기 획득!");
                             en.hp -= 150;
+                            showHitMarker(true);
                             player.ammoClip = Math.min(player.ammoClip + 3, 999); updateHUD();
                             if (!hasPanzerfaust) {
                                 hasPanzerfaust = true; panzerGroup.visible = (player.activeSlot === 4); document.getElementById('slot-4').style.display = 'flex';
@@ -1624,7 +1655,7 @@
                             }
                         }
                     } else {
-                        let dmg = 35; if (isHead) { dmg = 100; showToast("[CRITICAL] 헤드샷!"); }
+                        let dmg = 35; if (isHead) { dmg = 100; showToast("[CRITICAL] 헤드샷!"); showHitMarker(true); } else { showHitMarker(false); }
                         en.hp -= dmg; 
                     }
                     flashEnemyColor(en.group.children);
@@ -1648,7 +1679,10 @@
         if (isPunching) return;
         isPunching = true; sfx.punch();
         
-        const punchSpeed = 0.5; 
+        // 주먹 연사 속도 및 사거리 업그레이드 적용
+        const punchSpeed = 0.5 - (upgrades.fist * 0.1); 
+        const currentPunchRange = PUNCH_RANGE + (upgrades.fist * 0.8);
+
         fistL.position.z = -0.5; fistL.position.y = -0.1; fistL.rotation.x = -0.5; fistL.rotation.z = 0.3; 
         setTimeout(() => { fistL.position.z = -0.25; fistL.position.y = -0.18; fistL.rotation.x = 0; fistL.rotation.z = 0; }, punchSpeed * 100);
         setTimeout(() => { 
@@ -1656,27 +1690,27 @@
             setTimeout(() => { fistR.position.z = -0.25; fistR.position.y = -0.18; fistR.rotation.x = 0; fistR.rotation.z = 0; isPunching = false; }, punchSpeed * 150); 
         }, punchSpeed * 150);
 
-        const punchWall = fastVoxelRaycast(camPos, rayDir, PUNCH_RANGE + 0.8);
+        const punchWall = fastVoxelRaycast(camPos, rayDir, currentPunchRange + 0.8);
         const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(0, 0), camera);
         const hitEnemies = ray.intersectObjects(enemyGroup.children, true); 
         
         if ((gameState === 'BOSS' || gameState === 'SUPER_HARD') && stalin) {
            const hitsBoss = ray.intersectObjects(stalin.group.children, true);
-           if (hitsBoss.length > 0 && hitsBoss[0].distance < PUNCH_RANGE + 0.8) {
-             sfx.punchHit(); stalin.hp -= 50; 
+           if (hitsBoss.length > 0 && hitsBoss[0].distance < currentPunchRange + 0.8) {
+             sfx.punchHit(); stalin.hp -= 50; showHitMarker(false);
              player.hp = Math.min(player.maxHp, player.hp + 2); 
              flashEnemyColor(stalin.group.children); updateHUD(); showToast("[HEAL] 펀치 피흡 (+2)");
            }
         } 
         
-        if (hitEnemies.length > 0 && hitEnemies[0].distance < PUNCH_RANGE + 0.8 && (!punchWall || punchWall.distance > hitEnemies[0].distance)) { 
+        if (hitEnemies.length > 0 && hitEnemies[0].distance < currentPunchRange + 0.8 && (!punchWall || punchWall.distance > hitEnemies[0].distance)) { 
           const hitObj = hitEnemies[0].object;
           const en = enemies.find(e => e.group === hitObj.userData.parent);
           if (en) {
             if (en.isSoviet && hitObj.userData.isArmor) {
-                sfx.punchHit(); damagePlayer(5); showToast("[ARMOR] 흉갑 도탄! (역피해)");
+                sfx.punchHit(); damagePlayer(5); showToast("[ARMOR] 흉갑 도탄! (역피해)"); showHitMarker(false);
             } else {
-                sfx.punchHit(); en.hp -= 50; 
+                sfx.punchHit(); en.hp -= 50; showHitMarker(false);
                 player.hp = Math.min(player.maxHp, player.hp + 2); 
                 flashEnemyColor(en.group.children); updateHUD(); showToast("[HEAL] 펀치 피흡 (+2)");
                 if (en.hp <= 0) { 
@@ -1746,16 +1780,20 @@
             removeVoxel(cx+dx, cy+dy, cz+dz, false);
         }
 
+        let hitEnemyWithRocket = false;
         for (let i = enemies.length - 1; i >= 0; i--) {
             if (enemies[i].group.position.distanceTo(target) < 4.0) {
                 enemyGroup.remove(enemies[i].group); enemies.splice(i, 1);
+                hitEnemyWithRocket = true;
                 if(Math.random() < 0.35) addScrap(1);
                 if(Math.random() < 0.20) { player.ammoReserve += 2; showToast("[AMMO] 예비 탄약 +2 획득"); updateHUD(); }
             }
         }
         if (stalin && stalin.group.position.distanceTo(target) < 4.0) {
             stalin.hp -= 150; flashEnemyColor(stalin.group.children); showToast("로켓 명중! (보스에게는 150 피해)");
+            hitEnemyWithRocket = true;
         }
+        if (hitEnemyWithRocket) showHitMarker(true);
       }
     }
 
@@ -1945,12 +1983,20 @@
         
         realTimeSeconds++; inGameTimeSeconds += 15; 
         
-        if (isSuperHard) {
-            if (!player.isMoving && Date.now() - player.lastDamageTime > 1000 && player.hp < player.maxHp) { player.hp = Math.min(player.maxHp, player.hp + 20); updateHUD(); }
-        } else if (isHardMode) {
-            if (!player.isMoving && Date.now() - player.lastDamageTime > 1000 && player.hp < player.maxHp) { player.hp = Math.min(player.maxHp, player.hp + 20); updateHUD(); }
+        // 체력 리젠 업그레이드 수치 적용
+        let regenDelayNormal = 3000 - (upgrades.regen * 500); // 3000 -> 2500 -> 2000 -> 1500
+        let regenAmountNormal = 2 + (upgrades.regen * 2);     // 2 -> 4 -> 6 -> 8
+        let regenDelayHard = 1000 - (upgrades.regen * 200);   // 1000 -> 800 -> 600 -> 400
+        let regenAmountHard = 20 + (upgrades.regen * 5);      // 20 -> 25 -> 30 -> 35
+        
+        if (isSuperHard || isHardMode) {
+            if (!player.isMoving && Date.now() - player.lastDamageTime > regenDelayHard && player.hp < player.maxHp) { 
+                player.hp = Math.min(player.maxHp, player.hp + regenAmountHard); updateHUD(); 
+            }
         } else {
-            if (Date.now() - player.lastDamageTime > 3000 && player.hp < player.maxHp) { player.hp = Math.min(player.maxHp, player.hp + 2); updateHUD(); }
+            if (Date.now() - player.lastDamageTime > regenDelayNormal && player.hp < player.maxHp) { 
+                player.hp = Math.min(player.maxHp, player.hp + regenAmountNormal); updateHUD(); 
+            }
         }
         
         const startTotalSecs = (15 * 3600) + (30 * 60) + inGameTimeSeconds;
