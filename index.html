@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>나의 벙커 (My Bunker) - Phase 10 (Historical Disclaimer)</title>
+  <title>나의 벙커 (My Bunker) - Phase 10 (Cinematic Cutscene)</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; touch-action: none; }
     body, html { width: 100%; height: 100%; overflow: hidden; background-color: #000; font-family: 'Courier New', Courier, monospace; color: #fff; overscroll-behavior: none; }
@@ -12,9 +12,11 @@
     #vignette { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.85) 120%); pointer-events: none; z-index: 5; transition: background 0.5s; }
     #gas-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, transparent 30%, rgba(46, 204, 113, 0.4) 100%); pointer-events: none; z-index: 6; opacity: 0; transition: opacity 0.5s; box-shadow: inset 0 0 50px rgba(46,204,113,0.3); }
     #crosshair { position: absolute; top: 50%; left: 50%; width: 6px; height: 6px; margin-top: -3px; margin-left: -3px; background: rgba(255, 255, 255, 0.8); border-radius: 50%; pointer-events: none; z-index: 10; box-shadow: 0 0 4px #000; }
+    
     #hit-marker { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(1); width: 20px; height: 20px; pointer-events: none; z-index: 11; opacity: 0; transition: opacity 0.1s ease-out, transform 0.1s ease-out; display: flex; justify-content: center; align-items: center; }
     #hit-marker svg { width: 100%; height: 100%; stroke: rgba(255,255,255,0.9); stroke-width: 2.5; stroke-linecap: round; }
     .hit-critical svg { stroke: #e74c3c !important; stroke-width: 3.5 !important; filter: drop-shadow(0 0 5px rgba(231,76,60,0.8)); }
+    
     #compass-container { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); background: rgba(10, 10, 15, 0.8); border: 1px solid #444; border-radius: 20px; padding: 6px 20px; font-size: 12px; font-weight: bold; color: #e67e22; z-index: 15; text-align: center; pointer-events: none; box-shadow: 0 4px 6px rgba(0,0,0,0.5); backdrop-filter: blur(4px); text-transform: uppercase; letter-spacing: 1px; }
 
     .icon-inline { width: 1.2em; height: 1.2em; vertical-align: -0.2em; fill: currentColor; }
@@ -61,7 +63,7 @@
     .guide-box ul { list-style: none; padding: 0; color: #ccc; font-size: 13px; line-height: 1.6; }
     .guide-box li::before { content: "• "; color: #e74c3c; font-weight: bold; }
 
-    /* 모달 스크롤바 투명화 (UI 감성 유지) */
+    /* UI 스크롤바 투명화 (감성 유지) */
     #upgrade-list::-webkit-scrollbar { display: none; }
     #upgrade-list { -ms-overflow-style: none; scrollbar-width: none; }
     #collection-list::-webkit-scrollbar { display: none; }
@@ -91,6 +93,28 @@
     
     @keyframes scrapPop { 0% { transform: scale(1); } 50% { transform: scale(1.3); color: #f1c40f; } 100% { transform: scale(1); } }
     .scrap-pop { animation: scrapPop 0.3s ease-out; }
+
+    /* 시네마틱 컷신 시스템 레이어 (최상단) */
+    #cutscene-container {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background-color: #0d0d0d; z-index: 150;
+      display: none; justify-content: center; align-items: center;
+      transition: opacity 1s ease-in-out;
+    }
+    #cutscene-image {
+      max-width: 90%; max-height: 90%;
+      opacity: 0; transition: opacity 1.5s ease-in-out;
+      box-shadow: 0 0 50px rgba(0,0,0,0.8);
+      border: 2px solid #222;
+    }
+    #cutscene-skip-btn {
+      position: absolute; bottom: 30px; right: 30px;
+      padding: 10px 20px; background: rgba(20,20,20,0.7);
+      border: 1px solid #555; color: #aaa; border-radius: 4px;
+      font-family: 'Courier New', Courier, monospace;
+      cursor: pointer; transition: 0.2s; z-index: 151;
+    }
+    #cutscene-skip-btn:hover { background: rgba(50,50,50,0.9); color: #fff; border-color: #888; }
 
     @media screen and (max-height: 500px) {
         #hud { top: 40px; left: 10px; right: 10px; }
@@ -136,12 +160,21 @@
   <div id="gas-overlay"></div>
   <div id="blood-overlay"></div>
   <div id="crosshair"></div>
+  
+  <!-- Hit Marker -->
   <div id="hit-marker">
       <svg viewBox="0 0 24 24" fill="none"><line x1="6" y1="6" x2="18" y2="18"></line><line x1="18" y1="6" x2="6" y2="18"></line></svg>
   </div>
+  
   <div id="damage-flash"></div>
   <div id="fade-screen"></div>
   <div id="toast">MESSAGE</div>
+  
+  <!-- Cinematic Cutscene Container -->
+  <div id="cutscene-container">
+      <img id="cutscene-image" src="" alt="Cutscene">
+      <button id="cutscene-skip-btn">SKIP ⏭</button>
+  </div>
   
   <div id="compass-container">AZIMUTH: <span id="compass-dir" style="color:#fff;">N</span></div>
 
@@ -191,7 +224,7 @@
     </div>
   </div>
 
-  <!-- Phase 10: 윤리적 고지 및 면책 조항 모달 (가장 높은 z-index) -->
+  <!-- Phase 10: 윤리적 고지 및 면책 조항 모달 -->
   <div id="disclaimer-modal" class="modal" style="z-index: 100; display: flex;">
     <div style="background: rgba(15, 15, 15, 0.95); border: 2px solid #e74c3c; padding: 30px; border-radius: 8px; max-width: 550px; text-align: left; box-shadow: 0 10px 40px rgba(231,76,60,0.4);">
         <h1 style="font-size: 26px; color: #e74c3c; text-align: center; margin-bottom: 20px; font-family: 'Courier New', sans-serif; letter-spacing: 1px;">⚠️ 역사적 고지 및 면책 조항</h1>
@@ -221,7 +254,7 @@
       <ul>
         <li><b>조작법:</b> 이동(WASD/조이스틱), 시점(마우스/터치), 액션(클릭), 무기(1~4번)</li>
         <li><b>생존 & 채굴:</b> 곡괭이(3번)로 지하 깊은 곳까지 파고 내려가 탈출구나 보급을 찾으세요. (파괴 시 낮은 확률로 스크랩 획득)</li>
-        <li><b>특수 적군:</b> 흉갑을 입은 소련군(하드 50% 확률)은 <b>헤드샷에만 반응</b>하며 처치 시 [판저파우스트(4번)]를 확정 드랍합니다.</li>
+        <li><b>특수 적군:</b> 흉갑을 입은 적(하드 50% 확률)은 <b>헤드샷에만 반응</b>하며 처치 시 [판저파우스트(4번)]를 확정 드랍합니다.</li>
         <li><b>하드 모드:</b> 적군이 미친 듯이 몰려오지만, 움직이지 않고 은폐 시 체력이 대폭(+20) 자동 회복됩니다.</li>
         <li id="gas-hint" style="display:none; color:#2ecc71;"><b>[경고]</b> 하드모드 지하 <span id="gas-depth"></span> 구간에 치명적인 유독가스층 존재. 접근 주의!</li>
       </ul>
@@ -332,7 +365,6 @@
     document.addEventListener('gesturestart', function(e) { e.preventDefault(); }, { passive: false });
     document.addEventListener('touchmove', function(e) { if(e.touches.length > 1) { e.preventDefault(); } }, { passive: false });
 
-    // --- Data Encryption Wrapper & Bug Fix (Phase 5) ---
     function safeSetItem(key, data) { 
         try { 
             const encoded = btoa(encodeURIComponent(JSON.stringify(data))); 
@@ -344,6 +376,7 @@
         try { 
             const raw = localStorage.getItem(key); 
             if(!raw) return defaultVal;
+            if(raw.length < 5 && !isNaN(raw)) return JSON.parse(raw); // 핫픽스: 구버전 호환
             try {
                 return JSON.parse(decodeURIComponent(atob(raw))); 
             } catch (e) {
@@ -352,7 +385,6 @@
         } catch(e) { return defaultVal; }
     }
 
-    // --- Phase 10: Disclaimer Logic ---
     document.getElementById('disclaimer-checkbox').addEventListener('change', function(e) {
         const btn = document.getElementById('disclaimer-btn');
         if(e.target.checked) {
@@ -375,22 +407,18 @@
     }
 
     window.addEventListener('load', () => {
-        // If already agreed, bypass disclaimer
         if(safeGetItem('myBunkerDisclaimerAgreed', false)) {
             document.getElementById('disclaimer-modal').style.display = 'none';
             document.getElementById('start-modal').style.display = 'flex';
         }
     });
 
-
     let globalBgmVolume = parseFloat(localStorage.getItem('myBunkerBgmVol') ?? '1.0');
     let globalSfxVolume = parseFloat(localStorage.getItem('myBunkerSfxVol') ?? '1.0');
 
-    // --- Phase 6: Scrap & Upgrades Variables ---
     let scrap = parseInt(safeGetItem('myBunkerScrap', 0)) || 0;
     let upgrades = safeGetItem('myBunkerUpgrades', { hp: 0, pickaxe: 0, ammo: 0, speed: 0, regen: 0, fist: 0 });
     
-    // 호환성: 기존 유저에게 새 업그레이드 항목(regen, fist) 기본값 추가
     if (upgrades.regen === undefined) upgrades.regen = 0;
     if (upgrades.fist === undefined) upgrades.fist = 0;
 
@@ -480,16 +508,13 @@
 
     function updateDynamicBGM() {
         if (!audioCtx || !isGameStarted || gameState === 'START' || gameState === 'ENDING') return;
-        
         if (nextBeatTime < audioCtx.currentTime) { nextBeatTime = audioCtx.currentTime + 0.1; }
 
         while (nextBeatTime < audioCtx.currentTime + 0.1) {
             playBeat(nextBeatTime, beatStep);
-            
             let beatDur = 1.0; 
             if (gameState === 'ATOMIC_WAVE') beatDur = 0.12; 
             else if (gameState === 'BOSS' || gameState === 'SUPER_HARD') beatDur = 0.35; 
-            
             nextBeatTime += beatDur; 
             beatStep++;
         }
@@ -569,7 +594,7 @@
     let isHardBombingSequence = false;
     let atomicWaveTimer = 0;
     let hasPanzerfaust = false;
-    let frameCount = 0; // 최적화용
+    let frameCount = 0; 
 
     let gasDepthY1 = -8 - Math.floor(Math.random() * 4); 
     let gasDepthY2 = -16 - Math.floor(Math.random() * 4); 
@@ -1375,7 +1400,9 @@
           if (dist < 3.0 && now - stalin.lastAtk > atkCooldown) {
               stalin.lastAtk = now;
               stalin.rig.armR.rotation.x = -Math.PI/2; setTimeout(() => { if(stalin && stalin.actionState==='NORMAL') stalin.rig.armR.rotation.x = 0; }, 200);
-              sfx.bossHit(); damagePlayer(dmg); applyPlayerKnockback(player.pos.clone().sub(sPos).normalize(), 2.0);
+              sfx.bossHit(); damagePlayer(dmg); 
+              if (player.isGrounded) applyPlayerKnockback(player.pos.clone().sub(sPos).normalize(), 2.0);
+              else applyPlayerKnockback(player.pos.clone().sub(sPos).normalize(), 0.5);
           }
 
       } else if (stalin.actionState === 'POUND_PREP') {
@@ -1407,7 +1434,8 @@
     
               if (dist < 3.0) { 
                   damagePlayer(isSuperHard ? 5 : 25); sfx.punchHit();
-                  applyPlayerKnockback(stalin.chargeDir.clone(), 5.0);
+                  if (player.isGrounded) applyPlayerKnockback(stalin.chargeDir.clone(), 5.0);
+                  else applyPlayerKnockback(stalin.chargeDir.clone(), 1.0);
                   stalin.actionState = 'NORMAL';
               }
               if (now > stalin.actionTimer || isSolid(nextX, sPos.y, nextZ)) stalin.actionState = 'NORMAL'; 
@@ -1679,7 +1707,6 @@
         if (isPunching) return;
         isPunching = true; sfx.punch();
         
-        // 주먹 연사 속도 및 사거리 업그레이드 적용
         const punchSpeed = 0.5 - (upgrades.fist * 0.1); 
         const currentPunchRange = PUNCH_RANGE + (upgrades.fist * 0.8);
 
@@ -1934,7 +1961,75 @@
       }
     }, { passive: false });
 
+    let cutsceneTimeouts = [];
+    
     function startGame(mode, hard, superHard = false) {
+      const hasSeenIntro = safeGetItem('myBunkerHasSeenIntro', false);
+      
+      // 처음 플레이할 때만 컷신 재생, 이후에는 바로 게임 진입
+      if (!hasSeenIntro && !superHard) {
+          playIntroCutscene(mode, hard, superHard);
+      } else {
+          executeGameStart(mode, hard, superHard);
+      }
+    }
+
+    function playIntroCutscene(mode, hard, superHard) {
+        initAudio();
+        document.getElementById('start-modal').style.display = 'none';
+        
+        const container = document.getElementById('cutscene-container');
+        const imgEl = document.getElementById('cutscene-image');
+        const skipBtn = document.getElementById('cutscene-skip-btn');
+        
+        container.style.display = 'flex';
+        
+        // 유저가 직접 제작한 고품질 컷신 이미지 링크 적용 (직접 링크 .png 형태)
+        const scenes = [
+            "https://i.imgur.com/Jc6vTWj.png",
+            "https://i.imgur.com/gLE8jxM.png",
+            "https://i.imgur.com/FUtepm5.png"
+        ];
+
+        let step = 0;
+        const nextScene = () => {
+            if(step >= scenes.length) {
+                endCutscene(mode, hard, superHard);
+                return;
+            }
+            imgEl.style.opacity = 0;
+            // 1초 뒤 다음 이미지로 교체 후 페이드 인
+            cutsceneTimeouts.push(setTimeout(() => {
+                imgEl.src = scenes[step];
+                imgEl.style.opacity = 1;
+                step++;
+                // 4초 대기 후 다음 씬 호출
+                cutsceneTimeouts.push(setTimeout(nextScene, 4000));
+            }, 1000)); 
+        };
+
+        skipBtn.onclick = () => { endCutscene(mode, hard, superHard); };
+
+        // 첫 번째 컷신 즉시 시작
+        imgEl.src = scenes[0];
+        setTimeout(() => imgEl.style.opacity = 1, 100);
+        step = 1;
+        cutsceneTimeouts.push(setTimeout(nextScene, 4000));
+    }
+
+    function endCutscene(mode, hard, superHard) {
+        cutsceneTimeouts.forEach(clearTimeout);
+        document.getElementById('cutscene-container').style.opacity = 0;
+        safeSetItem('myBunkerHasSeenIntro', true);
+        
+        // 시네마틱 창이 부드럽게 사라진 후 게임 진짜 시작
+        setTimeout(() => {
+            document.getElementById('cutscene-container').style.display = 'none';
+            executeGameStart(mode, hard, superHard);
+        }, 1000);
+    }
+
+    function executeGameStart(mode, hard, superHard) {
       platformMode = mode; isHardMode = hard; isSuperHard = superHard;
       initAudio(); document.getElementById('start-modal').style.display = 'none'; document.getElementById('collection-modal').style.display = 'none'; document.getElementById('upgrade-modal').style.display = 'none';
       
@@ -1983,11 +2078,10 @@
         
         realTimeSeconds++; inGameTimeSeconds += 15; 
         
-        // 체력 리젠 업그레이드 수치 적용
-        let regenDelayNormal = 3000 - (upgrades.regen * 500); // 3000 -> 2500 -> 2000 -> 1500
-        let regenAmountNormal = 2 + (upgrades.regen * 2);     // 2 -> 4 -> 6 -> 8
-        let regenDelayHard = 1000 - (upgrades.regen * 200);   // 1000 -> 800 -> 600 -> 400
-        let regenAmountHard = 20 + (upgrades.regen * 5);      // 20 -> 25 -> 30 -> 35
+        let regenDelayNormal = 3000 - (upgrades.regen * 500); 
+        let regenAmountNormal = 2 + (upgrades.regen * 2);     
+        let regenDelayHard = 1000 - (upgrades.regen * 200);   
+        let regenAmountHard = 20 + (upgrades.regen * 5);      
         
         if (isSuperHard || isHardMode) {
             if (!player.isMoving && Date.now() - player.lastDamageTime > regenDelayHard && player.hp < player.maxHp) { 
