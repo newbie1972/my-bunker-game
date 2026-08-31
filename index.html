@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>나의 벙커 (My Bunker) - Phase 10 (Cinematic Cutscene)</title>
+  <title>나의 벙커 (My Bunker) - Phase 13 (Speedrun & i18n)</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; touch-action: none; }
     body, html { width: 100%; height: 100%; overflow: hidden; background-color: #000; font-family: 'Courier New', Courier, monospace; color: #fff; overscroll-behavior: none; }
@@ -63,11 +63,10 @@
     .guide-box ul { list-style: none; padding: 0; color: #ccc; font-size: 13px; line-height: 1.6; }
     .guide-box li::before { content: "• "; color: #e74c3c; font-weight: bold; }
 
-    /* UI 스크롤바 투명화 (감성 유지) */
     #upgrade-list::-webkit-scrollbar { display: none; }
-    #upgrade-list { -ms-overflow-style: none; scrollbar-width: none; }
+    #upgrade-list { -ms-overflow-style: none; scrollbar-width: none; touch-action: pan-y !important; pointer-events: auto; }
     #collection-list::-webkit-scrollbar { display: none; }
-    #collection-list { -ms-overflow-style: none; scrollbar-width: none; }
+    #collection-list { -ms-overflow-style: none; scrollbar-width: none; touch-action: pan-y !important; pointer-events: auto; }
 
     .upgrade-item { background: rgba(20, 20, 20, 0.8); border: 1px solid #444; border-radius: 6px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; text-align: left; gap: 15px; }
     .upgrade-info { flex: 1; }
@@ -224,19 +223,23 @@
     </div>
   </div>
 
-  <!-- Phase 10: 윤리적 고지 및 면책 조항 모달 -->
   <div id="disclaimer-modal" class="modal" style="z-index: 100; display: flex;">
+    <div style="position: absolute; top: 15px; right: 15px; display: flex; gap: 8px; z-index: 200;">
+       <button onclick="applyLang('ko')" class="platform-btn" style="min-width:auto; padding: 6px 12px; font-size:12px;">KO</button>
+       <button onclick="applyLang('en')" class="platform-btn" style="min-width:auto; padding: 6px 12px; font-size:12px;">EN</button>
+       <button onclick="applyLang('ja')" class="platform-btn" style="min-width:auto; padding: 6px 12px; font-size:12px;">JA</button>
+    </div>
     <div style="background: rgba(15, 15, 15, 0.95); border: 2px solid #e74c3c; padding: 30px; border-radius: 8px; max-width: 550px; text-align: left; box-shadow: 0 10px 40px rgba(231,76,60,0.4);">
-        <h1 style="font-size: 26px; color: #e74c3c; text-align: center; margin-bottom: 20px; font-family: 'Courier New', sans-serif; letter-spacing: 1px;">⚠️ 역사적 고지 및 면책 조항</h1>
+        <h1 id="disc-title" style="font-size: 26px; color: #e74c3c; text-align: center; margin-bottom: 20px; font-family: 'Courier New', sans-serif; letter-spacing: 1px;">⚠️ 역사적 고지 및 면책 조항</h1>
         <div style="color: #ccc; font-size: 14px; line-height: 1.7; margin-bottom: 25px; font-family: sans-serif;">
-            <p style="margin-bottom: 12px;">본 게임 <b>『나의 벙커(My Bunker)』</b>는 1945년 제2차 세계대전 말기를 모티브로 한 가상의 생존 시뮬레이션 게임입니다.</p>
-            <p style="margin-bottom: 12px;">본 작품은 순수한 오락적 목적의 픽션이며, <b>파시즘, 나치즘, 전체주의를 포함한 어떠한 형태의 전쟁 범죄, 인권 침해, 특정 이념을 결코 옹호하거나 미화하지 않습니다.</b></p>
-            <p>게임에 등장하는 모든 세력, 인물, 복장 등은 역사적 모티브를 둔 가상의 장치일 뿐이며, 개발진은 전쟁의 비극을 엄중히 인식하고 평화와 인류 보편의 가치를 지향합니다.</p>
+            <p id="disc-p1" style="margin-bottom: 12px;">본 게임 <b>『나의 벙커(My Bunker)』</b>는 1945년 제2차 세계대전 말기를 모티브로 한 가상의 생존 시뮬레이션 게임입니다.</p>
+            <p id="disc-p2" style="margin-bottom: 12px;">본 작품은 순수한 오락적 목적의 픽션이며, <b>파시즘, 나치즘, 전체주의를 포함한 어떠한 형태의 전쟁 범죄, 인권 침해, 특정 이념을 결코 옹호하거나 미화하지 않습니다.</b></p>
+            <p id="disc-p3">게임에 등장하는 모든 세력, 인물, 복장 등은 역사적 모티브를 둔 가상의 장치일 뿐이며, 개발진은 전쟁의 비극을 엄중히 인식하고 평화와 인류 보편의 가치를 지향합니다.</p>
         </div>
         <div style="text-align: center; margin-bottom: 25px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 4px; border: 1px solid #333;">
             <label style="color: #fff; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: bold;">
                 <input type="checkbox" id="disclaimer-checkbox" style="width: 20px; height: 20px; cursor: pointer; accent-color: #e74c3c;">
-                위 내용을 충분히 숙지하였으며, 이에 동의합니다.
+                <span id="disc-chk-text">위 내용을 충분히 숙지하였으며, 이에 동의합니다.</span>
             </label>
         </div>
         <div style="text-align: center;">
@@ -253,10 +256,9 @@
       <h3>[게임 통합 가이드]</h3>
       <ul>
         <li><b>조작법:</b> 이동(WASD/조이스틱), 시점(마우스/터치), 액션(클릭), 무기(1~4번)</li>
-        <li><b>생존 & 채굴:</b> 곡괭이(3번)로 지하 깊은 곳까지 파고 내려가 탈출구나 보급을 찾으세요. (파괴 시 낮은 확률로 스크랩 획득)</li>
-        <li><b>특수 적군:</b> 흉갑을 입은 적(하드 50% 확률)은 <b>헤드샷에만 반응</b>하며 처치 시 [판저파우스트(4번)]를 확정 드랍합니다.</li>
-        <li><b>하드 모드:</b> 적군이 미친 듯이 몰려오지만, 움직이지 않고 은폐 시 체력이 대폭(+20) 자동 회복됩니다.</li>
-        <li id="gas-hint" style="display:none; color:#2ecc71;"><b>[경고]</b> 하드모드 지하 <span id="gas-depth"></span> 구간에 치명적인 유독가스층 존재. 접근 주의!</li>
+        <li><b>생존 & 채굴:</b> 곡괭이(2번)로 지하 깊은 곳까지 파고 내려가 보급을 찾으세요. (파괴 시 낮은 확률로 스크랩 획득)</li>
+        <li><b>특수 적군:</b> 흉갑을 입은 적은 <b>헤드샷에만 반응</b>하며 처치 시 [판저파우스트(4번)]를 확정 드랍합니다.</li>
+        <li id="gas-hint" style="display:none;"><b>하드 모드:</b> 적군이 몰려오나 은폐 시 체력이 대폭(+20) 자동 회복됩니다. (지하 <span id="gas-depth"></span> 구간 유독가스층 주의)</li>
       </ul>
     </div>
 
@@ -318,7 +320,7 @@
   </div>
 
   <div id="settings-btn" onclick="openSettings()" style="position:absolute; top:15px; right:15px; z-index:20; cursor:pointer; background:rgba(20,20,20,0.8); padding:8px 12px; border-radius:6px; border:1px solid #555; display:flex; gap:8px; align-items:center; color:#ddd; font-weight:bold; font-size:12px; box-shadow:0 4px 6px rgba(0,0,0,0.5); backdrop-filter:blur(4px);">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
     설정 (ESC)
   </div>
 
@@ -338,7 +340,10 @@
         <input type="range" id="sfx-slider" min="0" max="1" step="0.01" value="1" style="width: 100%; cursor: pointer;">
       </div>
     </div>
-    <button class="platform-btn" onclick="closeSettings()" style="min-width: 150px; background:#2c3e50;">적용 및 닫기</button>
+    <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+        <button class="platform-btn" onclick="closeSettings()" style="min-width: 150px; background:#2c3e50;">적용 및 닫기</button>
+        <button class="platform-btn hard-btn" onclick="location.reload()" style="min-width: 150px;">메인 메뉴로 나가기</button>
+    </div>
   </div>
 
   <div id="mobile-controls">
@@ -376,13 +381,54 @@
         try { 
             const raw = localStorage.getItem(key); 
             if(!raw) return defaultVal;
-            if(raw.length < 5 && !isNaN(raw)) return JSON.parse(raw); // 핫픽스: 구버전 호환
+            if(raw.length < 5 && !isNaN(raw)) return JSON.parse(raw); 
             try {
                 return JSON.parse(decodeURIComponent(atob(raw))); 
             } catch (e) {
                 return JSON.parse(raw);
             }
         } catch(e) { return defaultVal; }
+    }
+
+    /* 3개국어 현지화 (i18n) 시스템 */
+    const i18n = {
+       ko: {
+          discTitle: "⚠️ 역사적 고지 및 면책 조항",
+          disc1: "본 게임 『나의 벙커(My Bunker)』는 1945년 제2차 세계대전 말기를 모티브로 한 가상의 생존 시뮬레이션 게임입니다.",
+          disc2: "본 작품은 순수한 오락적 목적의 픽션이며, 파시즘, 나치즘, 전체주의를 포함한 어떠한 형태의 전쟁 범죄, 인권 침해, 특정 이념을 결코 옹호하거나 미화하지 않습니다.",
+          disc3: "게임에 등장하는 모든 세력, 인물, 복장 등은 역사적 모티브를 둔 가상의 장치일 뿐이며, 개발진은 전쟁의 비극을 엄중히 인식하고 평화와 인류 보편의 가치를 지향합니다.",
+          discChk: "위 내용을 충분히 숙지하였으며, 이에 동의합니다.",
+          discBtn: "동의 및 게임 입장 (ENTER)"
+       },
+       en: {
+          discTitle: "⚠️ Historical Disclaimer",
+          disc1: "This game 'My Bunker' is a fictional survival simulation based on the end of WWII in 1945.",
+          disc2: "This is a work of fiction purely for entertainment and does not endorse or glorify fascism, Nazism, totalitarianism, war crimes, or human rights violations.",
+          disc3: "All factions, characters, and outfits are fictional devices inspired by history. The developers strictly recognize the tragedy of war and aim for universal peace.",
+          discChk: "I have fully read and agree to the above terms.",
+          discBtn: "Agree & Enter (ENTER)"
+       },
+       ja: {
+          discTitle: "⚠️ 歴史的免責事項",
+          disc1: "本作『My Bunker』は1945年の第二次世界大戦末期をモチーフにした架空のサバイバルシミュレーションゲームです。",
+          disc2: "本作は純粋な娯楽目的のフィクションであり、ファシズム、ナチズム、全体主義、戦争犯罪、人権侵害等をいかなる形でも擁護・美化するものではありません。",
+          disc3: "登場する勢力や人物は歴史をモチーフにした架空のものです。開発陣は戦争の悲劇を重く受け止め、平和と普遍的価値を指向しています。",
+          discChk: "上記の内容を十分に理解し、同意します。",
+          discBtn: "同意してゲーム開始 (ENTER)"
+       }
+    };
+
+    let currentLang = safeGetItem('myBunkerLang', 'ko');
+
+    function applyLang(lang) {
+        currentLang = lang;
+        safeSetItem('myBunkerLang', lang);
+        document.getElementById('disc-title').innerText = i18n[lang].discTitle;
+        document.getElementById('disc-p1').innerText = i18n[lang].disc1;
+        document.getElementById('disc-p2').innerText = i18n[lang].disc2;
+        document.getElementById('disc-p3').innerText = i18n[lang].disc3;
+        document.getElementById('disc-chk-text').innerText = i18n[lang].discChk;
+        document.getElementById('disclaimer-btn').innerText = i18n[lang].discBtn;
     }
 
     document.getElementById('disclaimer-checkbox').addEventListener('change', function(e) {
@@ -407,6 +453,7 @@
     }
 
     window.addEventListener('load', () => {
+        applyLang(currentLang);
         if(safeGetItem('myBunkerDisclaimerAgreed', false)) {
             document.getElementById('disclaimer-modal').style.display = 'none';
             document.getElementById('start-modal').style.display = 'flex';
@@ -689,12 +736,12 @@
       'bedrock': createRealisticTexture('#0f0f0f', 'rock'),
       'portal': createRealisticTexture('#1f3a93', 'metal'),
       'atomic_door': createRealisticTexture('#00ff33', 'metal'), 
-      'uboat': createRealisticTexture('#ff2222', 'metal'),      
+      'uboat': createRealisticTexture('#1a1a1a', 'metal'),      
       'water_rock': createRealisticTexture('#3498db', 'rock')   
     };
     materials.portal.emissive.setHex(0x0055ff); materials.portal.emissiveIntensity = 0.8;
     materials.atomic_door.emissive.setHex(0x00ff44); materials.atomic_door.emissiveIntensity = 1.0;
-    materials.uboat.emissive.setHex(0xff3333); materials.uboat.emissiveIntensity = 0.8;
+    materials.uboat.emissive.setHex(0x0055ff); materials.uboat.emissiveIntensity = 0.3;
     materials.water_rock.emissive.setHex(0x3498db); materials.water_rock.emissiveIntensity = 0.6;
 
     const voxels = new Map();
@@ -810,10 +857,15 @@
       addVoxelLogic(17, -26, 17, 'atomic_door');
       const atomicLight = new THREE.PointLight(0x00ffaa, 6.0, 20); atomicLight.position.set(17, -26, 17); scene.add(atomicLight);
 
-      addVoxelLogic(-17, -20, 17, 'uboat'); 
+      // U-Boat 모델링
+      const ubX = -17, ubY = -20, ubZ = 17;
+      for(let dz = -3; dz <= 3; dz++) addVoxelLogic(ubX, ubY, ubZ + dz, 'uboat'); 
+      addVoxelLogic(ubX, ubY + 1, ubZ, 'uboat'); 
+      addVoxelLogic(ubX, ubY + 1, ubZ + 1, 'uboat');
+      
       addVoxelLogic(-16, -20, 17, 'water_rock'); addVoxelLogic(-16, -19, 17, 'water_rock');
       addVoxelLogic(-17, -19, 17, 'water_rock'); addVoxelLogic(-16, -20, 16, 'water_rock'); 
-      const uboatLight = new THREE.PointLight(0xff4444, 6.0, 20); uboatLight.position.set(-17, -20, 17); scene.add(uboatLight);
+      const uboatLight = new THREE.PointLight(0x0055ff, 5.0, 20); uboatLight.position.set(-17, -20, 17); scene.add(uboatLight);
 
       voxels.forEach(v => updateVoxelMesh(v.x, v.y, v.z));
     }
@@ -865,14 +917,27 @@
         const knuckles = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.02, 0.04), skinMatBase); knuckles.position.set(0, 0.04, -0.05);
         f.add(palm, thumb, knuckles); f.position.set(isRight ? 0.15 : -0.15, -0.18, -0.25); return f;
     }
-    const fistR = createFist(true); const fistL = createFist(false);
+    fistR = createFist(true); const fistL = createFist(false);
     fistGroup.add(fistR, fistL); handToolGroup.add(fistGroup);
 
     const pickGroup = new THREE.Group();
-    const pHandle = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.012, 0.8, 8), gunWood);
-    const pHead = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.04, 0.04), gunMetal);
-    pHead.position.set(0, 0.35, -0.1); pHead.rotation.y = Math.PI / 2; pHandle.rotation.x = Math.PI / 2.2; pHandle.add(pHead);
-    pickGroup.add(pHandle); pickGroup.position.set(0.25, -0.25, -0.4); handToolGroup.add(pickGroup);
+    const pHandle = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.4, 8), gunWood);
+    pHandle.geometry.translate(0, 0.2, 0); // 손잡이 아랫부분을 회전 축으로 설정
+    const pHead = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.05, 0.05), gunMetal);
+    pHead.position.set(0, 0.38, 0); // 손잡이 맨 끝에 쇳덩이 고정
+    
+    // [수정1] 쇳덩이를 90도 회전시켜서 가로('ㅡ')에서 세로('ㅣ')로 바꿈
+    pHead.rotation.y = Math.PI / 2; 
+    
+    pHandle.add(pHead);
+    pickGroup.add(pHandle);
+    
+    // [수정2] 무기를 조금 더 뒤로(카메라 쪽으로) 당기고, 우측 하단으로 내림
+    pickGroup.position.set(0.25, -0.25, -0.15); 
+    
+    // [수정3] 앞으로 뻗으면서 살짝 안쪽(왼쪽)으로 기울여서 쥐는 각도 형성
+    pickGroup.rotation.set(-1.0, 0.3, 0);
+    handToolGroup.add(pickGroup);
 
     const panzerGroup = new THREE.Group();
     const panzerMat = createRealisticTexture('#2E402D', 'metal');
@@ -895,7 +960,7 @@
       g.add(torso);
       
       const weaponMount = new THREE.Group();
-      weaponMount.position.set(0.1, 1.05, 0.15); 
+      weaponMount.position.set(0, 1.05, 0.15); 
       g.add(weaponMount);
 
       let armorMesh = null;
@@ -960,13 +1025,14 @@
           chinstrap.position.set(0, 1.32, 0); g.add(chinstrap);
       }
       
+      // [수정] 양팔의 어깨 시작점(Y)을 총과 동일하게 가슴 높이(1.05)로 고정
       const armL = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.55, 0.12), cBody); 
-      armL.position.set(-0.30, 0.85, 0); 
+      armL.position.set(-0.30, 1.05, 0); 
       armL.geometry.translate(0, -0.2, 0); 
       g.add(armL);
       
       const armR = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.55, 0.12), cBody); 
-      armR.position.set(0.30, 0.85, 0); 
+      armR.position.set(0.30, 1.05, 0); 
       armR.geometry.translate(0, -0.25, 0);
       g.add(armR);
 
@@ -1122,38 +1188,26 @@
         let timeSinceShoot = now - e.lastShoot;
         let isCombatAiming = (true3DDist < 25);
 
+        // [수정] 무기 위치와 양팔 각도 완벽 조정 (가슴 높이, 우측 밀착, 정조준 비대칭 파지)
         if (timeSinceShoot < 450) {
             let t = timeSinceShoot / 450; 
-            let kick = 0;
-            if (t < 0.12) {
-                kick = (t / 0.12); 
-            } else {
-                kick = 1.0 - Math.pow((t - 0.12) / 0.88, 2); 
-            }
+            let kick = (t < 0.12) ? (t / 0.12) : 1.0 - Math.pow((t - 0.12) / 0.88, 2);
 
-            e.rig.weaponMount.position.set(0.1, 1.05, 0.15 - (kick * 0.12)); 
+            e.rig.weaponMount.position.set(0.17, 1.05, 0.35 - (kick * 0.12)); 
             e.rig.weaponMount.rotation.x = -kick * 0.35; 
             e.rig.torso.rotation.x = -kick * 0.18; 
             
-            e.rig.armR.rotation.set(-Math.PI / 2.2 + (kick * 0.3), 0, 0); 
-            e.rig.armL.rotation.set(-Math.PI / 2.5 + (kick * 0.3), 0, 0.4); 
-
-        } else if (isCombatAiming) {
-            e.rig.weaponMount.position.set(0.1, 1.05, 0.15);
-            e.rig.weaponMount.rotation.x = 0; 
-            e.rig.torso.rotation.x = 0.05; 
-
-            e.rig.armR.rotation.set(-Math.PI / 2.2, 0, 0); 
-            e.rig.armL.rotation.set(-Math.PI / 2.5, 0, 0.4); 
+            e.rig.armR.rotation.set(-Math.PI / 2.5 + (kick * 0.3), 0, -0.3); 
+            e.rig.armL.rotation.set(-Math.PI / 2.1 + (kick * 0.3), 0, 0.4); 
 
         } else {
-            e.rig.weaponMount.position.set(0.12, 0.95, 0.15);
-            e.rig.weaponMount.rotation.x = 0.4; 
-            e.rig.torso.rotation.x = (shouldChase ? Math.abs(Math.sin(e.walkTime)) * 0.04 : 0);
+            let bob = shouldChase ? Math.sin(e.walkTime) * 0.05 : 0;
+            e.rig.weaponMount.position.set(0.17, 1.05 + bob, 0.35);
+            e.rig.weaponMount.rotation.x = 0; 
+            e.rig.torso.rotation.x = (shouldChase ? Math.abs(bob) : 0.05); 
 
-            let armSwing = (shouldChase ? Math.sin(e.walkTime) * 0.6 : 0);
-            e.rig.armL.rotation.set(armSwing, 0, 0.1);
-            e.rig.armR.rotation.set(-armSwing, 0, -0.1);
+            e.rig.armR.rotation.set(-Math.PI / 2.5 + bob, 0, -0.3); 
+            e.rig.armL.rotation.set(-Math.PI / 2.1 + bob, 0, 0.4); 
         }
 
         if (true3DDist < 25 && now - e.lastShoot > (isHardMode ? shootCooldown : shootCooldown + Math.random()*500)) { 
@@ -1289,6 +1343,15 @@
           if (stalin.hp <= stalin.maxHp * 0.25 && currentPhase === 3) stalin.phase = 4;
       } else {
           if (stalin.hp <= stalin.maxHp * 0.50 && currentPhase === 1) stalin.phase = 2;
+      }
+
+      if (!stalin.lastPassiveSummon) stalin.lastPassiveSummon = now;
+      let summonInterval = isSuperHard ? 3000 : 7000;
+      if (stalin.phase >= 2 && now - stalin.lastPassiveSummon > summonInterval) {
+          stalin.lastPassiveSummon = now;
+          let sp = spawnPoints[Math.floor(Math.random() * spawnPoints.length)];
+          spawnEnemy(sp.x + (Math.random()-0.5)*4, sp.z + (Math.random()-0.5)*4);
+          sfx.shoot(); 
       }
 
       if (currentPhase !== stalin.phase) {
@@ -1604,8 +1667,10 @@
         if (gameState === 'ATOMIC_WAVE') return;
         gameState = 'ATOMIC_WAVE'; atomicWaveTimer = realTimeSeconds + 60;
         showToast("☢️ 비밀 원자로 가동! 60초간 극비 시설을 사수하십시오!");
+        
         document.getElementById('vignette').style.background = 'radial-gradient(circle, transparent 40%, rgba(0, 255, 170, 0.5) 120%)';
-        ambientLight.color.setHex(0x00ffaa); ambientLight.intensity = 1.0;
+        ambientLight.color.setHex(0x00ffaa);
+        ambientLight.intensity = 1.0;
     }
 
     let hitMarkerTimeout;
@@ -2076,7 +2141,11 @@
       setInterval(() => {
         if (!isGameStarted || gameState === 'ENDING' || gameState === 'START') return;
         
-        realTimeSeconds++; inGameTimeSeconds += 15; 
+        realTimeSeconds++; 
+        
+        // [수정] 15초 고정 상승이 아니라 20초 ~ 2시간(7200초) 사이 랜덤한 시간으로 가짜 시간 흐름 적용
+        let randomJump = Math.floor(Math.random() * (7200 - 20 + 1)) + 20;
+        inGameTimeSeconds += randomJump; 
         
         let regenDelayNormal = 3000 - (upgrades.regen * 500); 
         let regenAmountNormal = 2 + (upgrades.regen * 2);     
@@ -2115,7 +2184,7 @@
         }
 
         if (gameState === 'BUNKER' && realTimeSeconds === BOSS_START_TIME - 10) { 
-          gameState = 'FINAL_WAVE'; showToast("[SYSTEM] 최후의 방어선 붕괴! 벙커 탈출 준비!"); 
+          gameState = 'FINAL_WAVE'; showToast("[SYSTEM] 최후의 방어선 붕괴! 대비하라!"); 
           document.getElementById('status-display').innerText = "🚨 벙커 붕괴 임박"; document.getElementById('status-display').style.color = "#e74c3c";
         }
         if (gameState === 'FINAL_WAVE' && realTimeSeconds < BOSS_START_TIME) {
@@ -2210,7 +2279,7 @@
     }
 
     function triggerFinalBombing() {
-      gameState = 'TRANSITION'; showToast("[SYSTEM] 벙커 붕괴! 탈출하라!"); document.getElementById('fade-screen').style.opacity = '1'; 
+      gameState = 'TRANSITION'; showToast("[SYSTEM] 벙커 붕괴! 살아남아라!"); document.getElementById('fade-screen').style.opacity = '1'; 
       for(let i=0; i<15; i++) { setTimeout(() => { sfx.explosion(); camera.position.y -= 0.5; }, i * 300); }
       setTimeout(() => {
         buildRuinsWorld(); player.pos.set(0, 1.5, 10); player.rotY = Math.PI; player.hp = player.maxHp; 
@@ -2241,30 +2310,42 @@
       const modal = document.getElementById('ending-modal'); const title = document.getElementById('ending-title');
       const sub = document.getElementById('ending-subtitle'); const desc = document.getElementById('ending-desc');
 
+      // [추가] 스피드런 및 랭킹 데이터 처리
+      let timeStr = `${String(Math.floor(realTimeSeconds/60)).padStart(2,'0')}:${String(realTimeSeconds%60).padStart(2,'0')}`;
+      let rec = safeGetItem('myBunkerRecords', { fast_VICTORY: 9999, fast_ARGENTINA: 9999, fast_ATOMIC: 9999, fast_UBOAT: 9999, long_SUPER_HARD: 0 });
+      let isNewRecord = false;
+
+      if (isSuperHard) {
+          if (realTimeSeconds > rec.long_SUPER_HARD) { rec.long_SUPER_HARD = realTimeSeconds; isNewRecord = true; }
+          desc.innerText = `생존 시간: ${timeStr} ${isNewRecord ? '(🔥최고 기록 경신!)' : ''}`;
+      } else {
+          if (['VICTORY', 'ARGENTINA', 'ATOMIC', 'UBOAT'].includes(type)) {
+              if (realTimeSeconds < rec['fast_' + type]) { rec['fast_' + type] = realTimeSeconds; isNewRecord = true; }
+              desc.innerText = `클리어 시간: ${timeStr} ${isNewRecord ? '(⏱️최단 기록 경신!)' : ''}`;
+          } else {
+              desc.innerText = `${timeStr} 생존 후 전사했습니다.`;
+          }
+      }
+      safeSetItem('myBunkerRecords', rec);
+
       if (type === 'DEATH') {
         title.innerText = "K.I.A"; title.style.color = "#e74c3c"; sub.innerText = "사망 엔딩: 벙커의 무덤";
-        desc.innerText = "벙커는 무너졌고, 제국은 끝났다. 당신은 역사의 먼지가 되었다.";
       } 
       else if (type === 'DEFEAT') {
         title.innerText = "EXECUTED"; title.style.color = "#e74c3c"; sub.innerText = "스탈린 엔딩: 처형";
-        desc.innerText = "스탈린의 묵직한 철권에 쓰러졌다. 베를린은 완전히 그들의 차지가 되었다.";
       } 
       else if (type === 'VICTORY') {
         title.innerText = "SURVIVED"; title.style.color = "#e67e22"; sub.innerText = "진 엔딩: 고독한 승리자";
-        desc.innerText = "스탈린을 쓰러뜨렸다. 총성도 폭격도 멈춘 정적 속에서, 당신은 폐허가 된 제국을 홀로 걸어나간다...";
         document.getElementById('fade-screen').style.background = "#fff"; document.getElementById('fade-screen').style.opacity = "1";
       } 
       else if (type === 'ARGENTINA') {
         title.innerText = "ESCAPED"; title.style.color = "#3498db"; sub.innerText = "히든 엔딩: 아르헨티나의 태양";
-        desc.innerText = "끝없이 파고 내려간 끝에 비밀 터널을 찾아 남미로 도주했다. 세상은 당신이 죽은 줄 알 것이다.";
       }
       else if (type === 'ATOMIC') {
         title.innerText = "ATOMIC"; title.style.color = "#00ffaa"; sub.innerText = "히든 엔딩: 방사능 낙원";
-        desc.innerText = "원자로를 가동시키고 1분을 버텼다. 당신이 손에 쥔 핵폭탄 스위치가 역사를 통째로 뒤바꿀 것이다.";
       }
       else if (type === 'UBOAT') {
         title.innerText = "U-BOAT"; title.style.color = "#c0392b"; sub.innerText = "히든 엔딩: 슈프레강의 유령";
-        desc.innerText = "녹슨 U-보트 엔진에 불을 켰다. 당신은 물길을 따라 북해의 자유를 향해 조용히 빠져나갔다.";
       }
       modal.style.display = 'flex'; setTimeout(() => modal.style.opacity = 1, 100);
     }
@@ -2288,6 +2369,22 @@
           else { div.innerHTML = `<span style="color:#e74c3c;font-weight:bold;">[미해금]</span> <span style="color:#aaa;">${e.hint}</span>`; }
           list.appendChild(div);
        });
+       
+       // [추가] 스피드런 및 랭킹 기록 표시
+       let rec = safeGetItem('myBunkerRecords', { fast_VICTORY: 9999, fast_ARGENTINA: 9999, fast_ATOMIC: 9999, fast_UBOAT: 9999, long_SUPER_HARD: 0 });
+       const formatT = (s) => s === 9999 ? "--:--" : `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+       
+       let recHtml = `<div style="margin-top:15px; padding:10px; background:rgba(0,0,0,0.6); border:1px solid #f39c12; border-radius:5px;">
+           <h3 style="color:#f1c40f; text-align:center; font-size:14px; margin-bottom:8px;">🏆 스피드런 & 생존 랭킹 기록</h3>
+           <ul style="list-style:none; padding:0; color:#ddd; font-size:12px; line-height:1.5;">
+               <li>진 엔딩 최단 클리어: <span style="color:#2ecc71">${formatT(rec.fast_VICTORY)}</span></li>
+               <li>아르헨티나 도주 최단: <span style="color:#2ecc71">${formatT(rec.fast_ARGENTINA)}</span></li>
+               <li>원자로 생존 최단: <span style="color:#2ecc71">${formatT(rec.fast_ATOMIC)}</span></li>
+               <li>U-보트 탈출 최단: <span style="color:#2ecc71">${formatT(rec.fast_UBOAT)}</span></li>
+               <li><span style="color:#e74c3c">슈퍼 하드 최장 생존:</span> <span style="color:#2ecc71">${formatT(rec.long_SUPER_HARD)}</span></li>
+           </ul>
+       </div>`;
+       list.innerHTML += recHtml;
        
        if (collectedEndings.length >= 6) document.getElementById('super-hard-container').style.display = 'block';
        else document.getElementById('super-hard-container').style.display = 'none';
