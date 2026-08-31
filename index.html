@@ -121,7 +121,7 @@
         .hp-bar-bg { width: 100px; height: 6px; }
         #time-display { font-size: 14px !important; }
         #compass-container { top: 5px; padding: 4px 15px; font-size: 11px; }
-        #settings-btn { top: 5px; right: 5px; padding: 6px 10px; font-size: 11px; }
+        #set-btn-text { top: 5px; right: 5px; padding: 6px 10px; font-size: 11px; }
         #scrap-display { top: 5px; left: 5px; padding: 6px 10px; font-size: 12px; }
         
         #tool-bar { bottom: 10px; gap: 5px; }
@@ -224,12 +224,13 @@
   </div>
 
   <div id="disclaimer-modal" class="modal" style="z-index: 100; display: flex;">
-    <div style="position: absolute; top: 15px; right: 15px; display: flex; gap: 8px; z-index: 200;">
-       <button onclick="applyLang('ko')" class="platform-btn" style="min-width:auto; padding: 6px 12px; font-size:12px;">KO</button>
-       <button onclick="applyLang('en')" class="platform-btn" style="min-width:auto; padding: 6px 12px; font-size:12px;">EN</button>
-       <button onclick="applyLang('ja')" class="platform-btn" style="min-width:auto; padding: 6px 12px; font-size:12px;">JA</button>
-    </div>
     <div style="background: rgba(15, 15, 15, 0.95); border: 2px solid #e74c3c; padding: 30px; border-radius: 8px; max-width: 550px; text-align: left; box-shadow: 0 10px 40px rgba(231,76,60,0.4);">
+        <!-- Translation Buttons moved inside the box -->
+        <div style="margin-bottom: 20px; display: flex; justify-content: center; gap: 10px;">
+           <button onclick="applyLang('ko')" class="platform-btn" style="min-width:auto; padding: 8px 16px; font-size:14px;">한국어</button>
+           <button onclick="applyLang('en')" class="platform-btn" style="min-width:auto; padding: 8px 16px; font-size:14px;">English</button>
+           <button onclick="applyLang('ja')" class="platform-btn" style="min-width:auto; padding: 8px 16px; font-size:14px;">日本語</button>
+        </div>
         <h1 id="disc-title" style="font-size: 26px; color: #e74c3c; text-align: center; margin-bottom: 20px; font-family: 'Courier New', sans-serif; letter-spacing: 1px;">⚠️ 역사적 고지 및 면책 조항</h1>
         <div style="color: #ccc; font-size: 14px; line-height: 1.7; margin-bottom: 25px; font-family: sans-serif;">
             <p id="disc-p1" style="margin-bottom: 12px;">본 게임 <b>『나의 벙커(My Bunker)』</b>는 1945년 제2차 세계대전 말기를 모티브로 한 가상의 생존 시뮬레이션 게임입니다.</p>
@@ -249,67 +250,74 @@
   </div>
 
   <div id="start-modal" class="modal" style="display: none; z-index: 50;">
-    <h1>MY BUNKER</h1>
-    <h2>1945 BERLIN: THE LAST STAND</h2>
+    <!-- Translation Buttons on the left side of start modal -->
+    <div style="position: absolute; top: 15px; left: 15px; display: flex; flex-direction: column; gap: 8px; z-index: 200;">
+       <button onclick="applyLang('ko')" class="platform-btn" style="min-width:auto; padding: 8px 16px; font-size:14px; background:#444; border-color:#222;">한국어</button>
+       <button onclick="applyLang('en')" class="platform-btn" style="min-width:auto; padding: 8px 16px; font-size:14px; background:#444; border-color:#222;">English</button>
+       <button onclick="applyLang('ja')" class="platform-btn" style="min-width:auto; padding: 8px 16px; font-size:14px; background:#444; border-color:#222;">日本語</button>
+    </div>
+
+    <h1 id="start-title">MY BUNKER</h1>
+    <h2 id="start-sub">1945 BERLIN: THE LAST STAND</h2>
     
     <div class="guide-box">
-      <h3>[게임 통합 가이드]</h3>
+      <h3 id="guide-title">[게임 통합 가이드]</h3>
       <ul>
-        <li><b>조작법:</b> 이동(WASD/조이스틱), 시점(마우스/터치), 액션(클릭), 무기(1~4번)</li>
-        <li><b>생존 & 채굴:</b> 곡괭이(2번)로 지하 깊은 곳까지 파고 내려가 보급을 찾으세요. (파괴 시 낮은 확률로 스크랩 획득)</li>
-        <li><b>특수 적군:</b> 흉갑을 입은 적은 <b>헤드샷에만 반응</b>하며 처치 시 [판저파우스트(4번)]를 확정 드랍합니다.</li>
-        <li id="gas-hint" style="display:none;"><b>하드 모드:</b> 적군이 몰려오나 은폐 시 체력이 대폭(+20) 자동 회복됩니다. (지하 <span id="gas-depth"></span> 구간 유독가스층 주의)</li>
+        <li id="guide-1"><b>조작법:</b> 이동(WASD/조이스틱), 시점(마우스/터치), 액션(클릭), 무기(1~4번)</li>
+        <li id="guide-2"><b>생존 & 채굴:</b> 곡괭이(2번)로 지하 깊은 곳까지 파고 내려가 보급을 찾으세요. (파괴 시 낮은 확률로 스크랩 획득)</li>
+        <li id="guide-3"><b>특수 적군:</b> 흉갑을 입은 적은 <b>헤드샷에만 반응</b>하며 처치 시 [판저파우스트(4번)]를 확정 드랍합니다.</li>
+        <li id="guide-4"><b>하드 모드:</b> 적군이 몰려오나 은폐 시 체력이 대폭(+20) 자동 회복됩니다. (지하 구간 유독가스층 주의)</li>
       </ul>
     </div>
 
     <div class="btn-group">
       <button class="platform-btn" onclick="startGame('PC', false)">
-        <svg class="icon-inline icon-stroke" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg> PC Normal
+        <svg class="icon-inline icon-stroke" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg> <span id="t-btn-pc-norm">PC Normal</span>
       </button>
       <button class="platform-btn" onclick="startGame('MOBILE', false)">
-        <svg class="icon-inline icon-stroke" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg> Mobile Normal
+        <svg class="icon-inline icon-stroke" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg> <span id="t-btn-mob-norm">Mobile Normal</span>
       </button>
     </div>
     <div class="btn-group" style="margin-top: 10px;">
       <button class="platform-btn hard-btn" onclick="startGame('PC', true)">
-        <svg class="icon-inline icon-stroke" viewBox="0 0 24 24"><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><path d="M8 20v2h8v-2"/><path d="M12.5 17h-1"/><path d="M16 20a4 4 0 0 0 4-4v-4a8 8 0 1 0-16 0v4a4 4 0 0 0 4 4"/></svg> PC HARD
+        <svg class="icon-inline icon-stroke" viewBox="0 0 24 24"><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><path d="M8 20v2h8v-2"/><path d="M12.5 17h-1"/><path d="M16 20a4 4 0 0 0 4-4v-4a8 8 0 1 0-16 0v4a4 4 0 0 0 4 4"/></svg> <span id="t-btn-pc-hard">PC HARD</span>
       </button>
       <button class="platform-btn hard-btn" onclick="startGame('MOBILE', true)">
-        <svg class="icon-inline icon-stroke" viewBox="0 0 24 24"><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><path d="M8 20v2h8v-2"/><path d="M12.5 17h-1"/><path d="M16 20a4 4 0 0 0 4-4v-4a8 8 0 1 0-16 0v4a4 4 0 0 0 4 4"/></svg> Mobile HARD
+        <svg class="icon-inline icon-stroke" viewBox="0 0 24 24"><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><path d="M8 20v2h8v-2"/><path d="M12.5 17h-1"/><path d="M16 20a4 4 0 0 0 4-4v-4a8 8 0 1 0-16 0v4a4 4 0 0 0 4 4"/></svg> <span id="t-btn-mob-hard">Mobile HARD</span>
       </button>
     </div>
     
     <div class="btn-group" style="margin-top: 15px;">
-        <button class="platform-btn" onclick="showCollection()" style="background:#e67e22; border-color:#d35400;">🏆 엔딩 도감</button>
-        <button class="platform-btn upgrade-btn" onclick="openUpgrade()">🛠️ 군수 비축고</button>
+        <button class="platform-btn" onclick="showCollection()" style="background:#e67e22; border-color:#d35400;"><span id="t-btn-coll">🏆 엔딩 도감</span></button>
+        <button class="platform-btn upgrade-btn" onclick="openUpgrade()"><span id="t-btn-upg">🛠️ 군수 비축고</span></button>
     </div>
   </div>
 
   <div id="upgrade-modal" class="modal" style="display:none; z-index:75;">
-    <h1 style="font-size: 30px; letter-spacing: 2px;">지하 군수 비축고</h1>
-    <h2 style="font-size: 14px; margin-bottom: 20px;">보유 스크랩: <span id="upgrade-scrap-val" style="color:#f39c12; font-weight:bold;">0</span> 개</h2>
+    <h1 id="upg-title" style="font-size: 30px; letter-spacing: 2px;">지하 군수 비축고</h1>
+    <h2 style="font-size: 14px; margin-bottom: 20px;"><span id="upg-scrap">보유 스크랩: </span><span id="upgrade-scrap-val" style="color:#f39c12; font-weight:bold;">0</span></h2>
     
     <div id="upgrade-list" style="width: 90%; max-width: 450px; text-align: left; margin-bottom: 20px; overflow-y:auto; max-height: 50vh; padding-right:5px;">
         <!-- Upgrades dynamically rendered -->
     </div>
 
-    <button class="platform-btn" onclick="closeUpgrade()" style="background:#2c3e50;">닫기</button>
+    <button id="upg-close" class="platform-btn" onclick="closeUpgrade()" style="background:#2c3e50;">닫기</button>
   </div>
 
   <div id="collection-modal" class="modal" style="display:none; z-index:70;">
-    <h1 style="font-size: 30px;">엔딩 도감</h1>
+    <h1 id="coll-title" style="font-size: 30px;">엔딩 도감</h1>
     <h2 id="collection-count">0/6 달성</h2>
     <div id="collection-list" style="text-align:left; width: 90%; max-width: 400px; max-height: 50vh; overflow-y:auto; padding: 10px; margin-bottom: 20px;"></div>
     
     <div id="super-hard-container" style="display:none; width: 100%; text-align: center; margin-bottom: 15px;">
-        <div style="color: #ff0000; font-weight: bold; font-size: 18px; margin-bottom: 10px; animation: heartbeatAnim 1s infinite;">🔥 슈퍼 하드 무한 모드 잠금 해제! 🔥</div>
+        <div id="sh-unl" style="color: #ff0000; font-weight: bold; font-size: 18px; margin-bottom: 10px; animation: heartbeatAnim 1s infinite;">🔥 슈퍼 하드 무한 모드 잠금 해제! 🔥</div>
         <div class="btn-group">
-            <button class="platform-btn hard-btn" style="min-width: 120px;" onclick="startGame('PC', true, true)">PC 시작</button>
-            <button class="platform-btn hard-btn" style="min-width: 120px;" onclick="startGame('MOBILE', true, true)">모바일 시작</button>
+            <button id="sh-pc" class="platform-btn hard-btn" style="min-width: 120px;" onclick="startGame('PC', true, true)">PC 시작</button>
+            <button id="sh-mob" class="platform-btn hard-btn" style="min-width: 120px;" onclick="startGame('MOBILE', true, true)">모바일 시작</button>
         </div>
     </div>
     
-    <button class="platform-btn" onclick="document.getElementById('collection-modal').style.display='none'">닫기</button>
+    <button id="coll-close" class="platform-btn" onclick="document.getElementById('collection-modal').style.display='none'">닫기</button>
   </div>
 
   <div id="ending-modal" class="modal" style="display:none; z-index:60;">
@@ -321,28 +329,28 @@
 
   <div id="settings-btn" onclick="openSettings()" style="position:absolute; top:15px; right:15px; z-index:20; cursor:pointer; background:rgba(20,20,20,0.8); padding:8px 12px; border-radius:6px; border:1px solid #555; display:flex; gap:8px; align-items:center; color:#ddd; font-weight:bold; font-size:12px; box-shadow:0 4px 6px rgba(0,0,0,0.5); backdrop-filter:blur(4px);">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-    설정 (ESC)
+    <span id="set-btn-text">설정 (ESC)</span>
   </div>
 
   <div id="settings-modal" class="modal" style="display:none; z-index:80;">
-    <h1 style="font-size: 30px; letter-spacing: 2px;">오디오 설정</h1>
+    <h1 id="set-title" style="font-size: 30px; letter-spacing: 2px;">오디오 설정</h1>
     <div style="background: rgba(30, 30, 30, 0.9); border: 1px solid #555; border-radius: 8px; padding: 25px; width: 90%; max-width: 350px; text-align: left; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
       <div style="margin-bottom: 20px;">
         <label style="color: #fff; font-size: 15px; font-weight: bold; display: flex; justify-content: space-between; margin-bottom: 8px;">
-          배경음악 (BGM) <span id="bgm-val" style="color:#e67e22;">100%</span>
+          <span id="set-bgm">배경음악 (BGM) </span><span id="bgm-val" style="color:#e67e22;">100%</span>
         </label>
         <input type="range" id="bgm-slider" min="0" max="1" step="0.01" value="1" style="width: 100%; cursor: pointer;">
       </div>
       <div>
         <label style="color: #fff; font-size: 15px; font-weight: bold; display: flex; justify-content: space-between; margin-bottom: 8px;">
-          효과음 (SFX) <span id="sfx-val" style="color:#3498db;">100%</span>
+          <span id="set-sfx">효과음 (SFX) </span><span id="sfx-val" style="color:#3498db;">100%</span>
         </label>
         <input type="range" id="sfx-slider" min="0" max="1" step="0.01" value="1" style="width: 100%; cursor: pointer;">
       </div>
     </div>
     <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
-        <button class="platform-btn" onclick="closeSettings()" style="min-width: 150px; background:#2c3e50;">적용 및 닫기</button>
-        <button class="platform-btn hard-btn" onclick="location.reload()" style="min-width: 150px;">메인 메뉴로 나가기</button>
+        <button id="set-apply" class="platform-btn" onclick="closeSettings()" style="min-width: 150px; background:#2c3e50;">적용 및 닫기</button>
+        <button id="set-quit" class="platform-btn hard-btn" onclick="location.reload()" style="min-width: 150px;">메인 메뉴로 나가기</button>
     </div>
   </div>
 
@@ -398,7 +406,18 @@
           disc2: "본 작품은 순수한 오락적 목적의 픽션이며, 파시즘, 나치즘, 전체주의를 포함한 어떠한 형태의 전쟁 범죄, 인권 침해, 특정 이념을 결코 옹호하거나 미화하지 않습니다.",
           disc3: "게임에 등장하는 모든 세력, 인물, 복장 등은 역사적 모티브를 둔 가상의 장치일 뿐이며, 개발진은 전쟁의 비극을 엄중히 인식하고 평화와 인류 보편의 가치를 지향합니다.",
           discChk: "위 내용을 충분히 숙지하였으며, 이에 동의합니다.",
-          discBtn: "동의 및 게임 입장 (ENTER)"
+          discBtn: "동의 및 게임 입장 (ENTER)",
+          startTitle: "MY BUNKER", startSub: "1945 BERLIN: THE LAST STAND",
+          guideTitle: "[게임 통합 가이드]",
+          guide1: "<b>조작법:</b> 이동(WASD/조이스틱), 시점(마우스/터치), 액션(클릭), 무기(1~4번)",
+          guide2: "<b>생존 & 채굴:</b> 곡괭이(2번)로 지하 깊은 곳까지 파고 내려가 보급을 찾으세요. (파괴 시 낮은 확률로 스크랩 획득)",
+          guide3: "<b>특수 적군:</b> 흉갑을 입은 적은 <b>헤드샷에만 반응</b>하며 처치 시 [판저파우스트(4번)]를 확정 드랍합니다.",
+          guide4: "<b>하드 모드:</b> 적군이 몰려오나 은폐 시 체력이 대폭(+20) 자동 회복됩니다.",
+          btnPcNorm: "PC Normal", btnMobNorm: "Mobile Normal", btnPcHard: "PC HARD", btnMobHard: "Mobile HARD",
+          btnColl: "🏆 엔딩 도감", btnUpg: "🛠️ 군수 비축고",
+          upgTitle: "지하 군수 비축고", upgScrap: "보유 스크랩: ", upgClose: "닫기",
+          collTitle: "엔딩 도감", collClose: "닫기", shUnl: "🔥 슈퍼 하드 무한 모드 잠금 해제! 🔥", shPc: "PC 시작", shMob: "모바일 시작",
+          setBtn: "설정 (ESC)", setTitle: "오디오 설정", setBgm: "배경음악 (BGM) ", setSfx: "효과음 (SFX) ", setApply: "적용 및 닫기", setQuit: "메인 메뉴로 나가기"
        },
        en: {
           discTitle: "⚠️ Historical Disclaimer",
@@ -406,7 +425,18 @@
           disc2: "This is a work of fiction purely for entertainment and does not endorse or glorify fascism, Nazism, totalitarianism, war crimes, or human rights violations.",
           disc3: "All factions, characters, and outfits are fictional devices inspired by history. The developers strictly recognize the tragedy of war and aim for universal peace.",
           discChk: "I have fully read and agree to the above terms.",
-          discBtn: "Agree & Enter (ENTER)"
+          discBtn: "Agree & Enter (ENTER)",
+          startTitle: "MY BUNKER", startSub: "1945 BERLIN: THE LAST STAND",
+          guideTitle: "[Game Guide]",
+          guide1: "<b>Controls:</b> Move(WASD/Joy), Look(Mouse/Touch), Action(Click), Weapon(1~4)",
+          guide2: "<b>Survive & Mine:</b> Use Pickaxe(2) to dig deep and find supplies. (Low chance to get scrap)",
+          guide3: "<b>Special Enemy:</b> Armored enemies only take <b>Headshots</b> and drop [Panzerfaust(4)].",
+          guide4: "<b>Hard Mode:</b> Hordes of enemies, but HP regenerates (+20) when hiding.",
+          btnPcNorm: "PC Normal", btnMobNorm: "Mobile Normal", btnPcHard: "PC HARD", btnMobHard: "Mobile HARD",
+          btnColl: "🏆 Endings", btnUpg: "🛠️ Bunker Armory",
+          upgTitle: "Bunker Armory", upgScrap: "Scrap: ", upgClose: "Close",
+          collTitle: "Ending Collection", collClose: "Close", shUnl: "🔥 Super Hard Endless Mode Unlocked! 🔥", shPc: "Start PC", shMob: "Start Mobile",
+          setBtn: "Settings (ESC)", setTitle: "Audio Settings", setBgm: "Music (BGM) ", setSfx: "Sound (SFX) ", setApply: "Apply & Close", setQuit: "Quit to Menu"
        },
        ja: {
           discTitle: "⚠️ 歴史的免責事項",
@@ -414,7 +444,18 @@
           disc2: "本作は純粋な娯楽目的のフィクションであり、ファシズム、ナチズム、全体主義、戦争犯罪、人権侵害等をいかなる形でも擁護・美化するものではありません。",
           disc3: "登場する勢力や人物は歴史をモチーフにした架空のものです。開発陣は戦争の悲劇を重く受け止め、平和と普遍的価値を指向しています。",
           discChk: "上記の内容を十分に理解し、同意します。",
-          discBtn: "同意してゲーム開始 (ENTER)"
+          discBtn: "同意してゲーム開始 (ENTER)",
+          startTitle: "MY BUNKER", startSub: "1945 BERLIN: THE LAST STAND",
+          guideTitle: "[ゲームガイド]",
+          guide1: "<b>操作:</b> 移動(WASD/Joy)、視点(Mouse/Touch)、アクション(Click)、武器(1~4)",
+          guide2: "<b>生存＆採掘:</b> ツルハシ(2)で深く掘り進め、物資を見つけよう。(低確率でスクラップ獲得)",
+          guide3: "<b>特殊な敵:</b> 装甲兵は<b>ヘッドショット</b>のみ有効。倒すと[パンツァーファウスト(4)]をドロップ。",
+          guide4: "<b>ハードモード:</b> 敵の大群。しかし隠れるとHPが大幅(+20)回復。",
+          btnPcNorm: "PC Normal", btnMobNorm: "Mobile Normal", btnPcHard: "PC HARD", btnMobHard: "Mobile HARD",
+          btnColl: "🏆 エンディング図鑑", btnUpg: "🛠️ 地下武器庫",
+          upgTitle: "地下武器庫", upgScrap: "スクラップ: ", upgClose: "閉じる",
+          collTitle: "エンディング図鑑", collClose: "閉じる", shUnl: "🔥 スーパーハード無限モード 解放！ 🔥", shPc: "PC スタート", shMob: "モバイル スタート",
+          setBtn: "設定 (ESC)", setTitle: "オーディオ設定", setBgm: "音楽 (BGM) ", setSfx: "効果音 (SFX) ", setApply: "適用して閉じる", setQuit: "メインメニューへ"
        }
     };
 
@@ -423,12 +464,48 @@
     function applyLang(lang) {
         currentLang = lang;
         safeSetItem('myBunkerLang', lang);
-        document.getElementById('disc-title').innerText = i18n[lang].discTitle;
-        document.getElementById('disc-p1').innerText = i18n[lang].disc1;
-        document.getElementById('disc-p2').innerText = i18n[lang].disc2;
-        document.getElementById('disc-p3').innerText = i18n[lang].disc3;
-        document.getElementById('disc-chk-text').innerText = i18n[lang].discChk;
-        document.getElementById('disclaimer-btn').innerText = i18n[lang].discBtn;
+        const t = i18n[lang];
+
+        document.getElementById('disc-title').innerHTML = t.discTitle;
+        document.getElementById('disc-p1').innerHTML = t.disc1;
+        document.getElementById('disc-p2').innerHTML = t.disc2;
+        document.getElementById('disc-p3').innerHTML = t.disc3;
+        document.getElementById('disc-chk-text').innerHTML = t.discChk;
+        document.getElementById('disclaimer-btn').innerHTML = t.discBtn;
+
+        document.getElementById('start-title').innerHTML = t.startTitle;
+        document.getElementById('start-sub').innerHTML = t.startSub;
+        document.getElementById('guide-title').innerHTML = t.guideTitle;
+        document.getElementById('guide-1').innerHTML = t.guide1;
+        document.getElementById('guide-2').innerHTML = t.guide2;
+        document.getElementById('guide-3').innerHTML = t.guide3;
+        document.getElementById('guide-4').innerHTML = t.guide4;
+
+        document.getElementById('t-btn-pc-norm').innerHTML = t.btnPcNorm;
+        document.getElementById('t-btn-mob-norm').innerHTML = t.btnMobNorm;
+        document.getElementById('t-btn-pc-hard').innerHTML = t.btnPcHard;
+        document.getElementById('t-btn-mob-hard').innerHTML = t.btnMobHard;
+        document.getElementById('t-btn-coll').innerHTML = t.btnColl;
+        document.getElementById('t-btn-upg').innerHTML = t.btnUpg;
+
+        document.getElementById('upg-title').innerHTML = t.upgTitle;
+        document.getElementById('upg-close').innerHTML = t.upgClose;
+        document.getElementById('upg-scrap').innerHTML = t.upgScrap;
+        document.getElementById('coll-title').innerHTML = t.collTitle;
+        document.getElementById('coll-close').innerHTML = t.collClose;
+        document.getElementById('set-title').innerHTML = t.setTitle;
+        document.getElementById('set-bgm').innerHTML = t.setBgm;
+        document.getElementById('set-sfx').innerHTML = t.setSfx;
+        document.getElementById('set-apply').innerHTML = t.setApply;
+        document.getElementById('set-quit').innerHTML = t.setQuit;
+        document.getElementById('set-btn-text').innerHTML = t.setBtn;
+
+        if (document.getElementById('sh-unl')) document.getElementById('sh-unl').innerHTML = t.shUnl;
+        if (document.getElementById('sh-pc')) document.getElementById('sh-pc').innerHTML = t.shPc;
+        if (document.getElementById('sh-mob')) document.getElementById('sh-mob').innerHTML = t.shMob;
+
+        if(document.getElementById('upgrade-modal').style.display === 'flex') renderUpgradeUI();
+        if(document.getElementById('collection-modal').style.display === 'flex') showCollection();
     }
 
     document.getElementById('disclaimer-checkbox').addEventListener('change', function(e) {
@@ -473,12 +550,36 @@
 
     const UPGRADE_COSTS = [35, 65, 100, 150, 200];
     const UPGRADE_DATA = {
-        hp: { title: '방탄판 보강 (Max HP +20)', desc: '지하 비축고의 철판을 덧대어 최대 체력을 상승시킵니다.', maxLv: 5 },
-        pickaxe: { title: '채굴 아드레날린 (체력 피흡)', desc: '블록 파괴 시마다 일정 확률(10~30%)로 잃은 체력을 즉시 +2 회복합니다.', maxLv: 3 },
-        ammo: { title: '확장 탄창 (장전 수 +3발)', desc: 'Luger 권총의 탄창 용량이 증가하여 재장전 없이 더 많이 사격합니다.', maxLv: 5 },
-        speed: { title: '경량 전투화 (이속 상승)', desc: '불필요한 장비를 줄여 이동 속도가 소폭 상승합니다.', maxLv: 5 },
-        regen: { title: '응급 처치술 (자동 회복)', desc: '가만히 은폐 시 체력 자동 회복 대기 시간이 감소하고 회복량이 증가합니다.', maxLv: 3 },
-        fist: { title: '근접 격투술 (주먹 강화)', desc: '주먹의 타격 사거리가 늘어나고 펀치 연사 속도가 빨라집니다.', maxLv: 3 }
+        hp: { 
+            title: { ko: '방탄판 보강 (Max HP +20)', en: 'Armor Plate (Max HP +20)', ja: '防弾板補強 (Max HP +20)' },
+            desc: { ko: '지하 비축고의 철판을 덧대어 최대 체력을 상승시킵니다.', en: 'Increase max health by reinforcing armor.', ja: '地下備蓄庫の鉄板を重ねて最大体力を上昇させます。' },
+            maxLv: 5 
+        },
+        pickaxe: { 
+            title: { ko: '채굴 아드레날린 (체력 피흡)', en: 'Mining Adrenaline (Lifesteal)', ja: '採掘アドレナリン (体力吸収)' },
+            desc: { ko: '블록 파괴 시마다 일정 확률로 체력을 회복합니다.', en: 'Chance to heal when destroying blocks.', ja: 'ブロック破壊時に一定確率で体力を回復します。' },
+            maxLv: 3 
+        },
+        ammo: { 
+            title: { ko: '확장 탄창 (장전 수 +3발)', en: 'Extended Mag (+3 Ammo)', ja: '拡張マガジン (装弾数 +3発)' },
+            desc: { ko: 'Luger 권총의 탄창 용량이 증가합니다.', en: 'Increases Luger pistol magazine capacity.', ja: 'Lugerピストルのマガジン容量が増加します。' },
+            maxLv: 5 
+        },
+        speed: { 
+            title: { ko: '경량 전투화 (이속 상승)', en: 'Light Boots (Speed Up)', ja: '軽量戦闘靴 (移動速度上昇)' },
+            desc: { ko: '이동 속도가 소폭 상승합니다.', en: 'Slightly increases movement speed.', ja: '移動速度が少し上昇します。' },
+            maxLv: 5 
+        },
+        regen: { 
+            title: { ko: '응급 처치술 (자동 회복)', en: 'First Aid (Auto Regen)', ja: '応急処置 (自動回復)' },
+            desc: { ko: '가만히 은폐 시 체력 회복량이 증가합니다.', en: 'Increases auto health regen when hiding.', ja: '隠れている時の体力回復量が増加します。' },
+            maxLv: 3 
+        },
+        fist: { 
+            title: { ko: '근접 격투술 (주먹 강화)', en: 'CQC (Fist Upgrade)', ja: '近接格闘術 (拳強化)' },
+            desc: { ko: '주먹의 타격 사거리가 늘어나고 연사 속도가 빨라집니다.', en: 'Increases fist range and attack speed.', ja: '拳の攻撃範囲が広がり、連射速度が上がります。' },
+            maxLv: 3 
+        }
     };
 
     function addScrap(amount) {
@@ -506,11 +607,11 @@
             div.className = 'upgrade-item';
             div.innerHTML = `
                 <div class="upgrade-info">
-                    <div class="upgrade-name">${data.title} <span style="color:#bdc3c7;">[Lv.${currentLv}/${data.maxLv}]</span></div>
-                    <div class="upgrade-desc">${data.desc}</div>
+                    <div class="upgrade-name">${data.title[currentLang]} <span style="color:#bdc3c7;">[Lv.${currentLv}/${data.maxLv}]</span></div>
+                    <div class="upgrade-desc">${data.desc[currentLang]}</div>
                 </div>
                 <button class="upgrade-buy-btn" ${isMax || scrap < nextCost ? 'disabled' : ''} onclick="buyUpgrade('${key}', ${nextCost})">
-                    ${isMax ? 'MAX' : `${nextCost} 개`}
+                    ${isMax ? 'MAX' : `${nextCost}`}
                 </button>
             `;
             list.appendChild(div);
@@ -645,7 +746,6 @@
 
     let gasDepthY1 = -8 - Math.floor(Math.random() * 4); 
     let gasDepthY2 = -16 - Math.floor(Math.random() * 4); 
-    document.getElementById('gas-depth').innerText = `${Math.abs(gasDepthY1)}m 및 ${Math.abs(gasDepthY2)}m`;
     
     let collectedEndings = safeGetItem('myBunkerEndings', []);
 
@@ -926,16 +1026,13 @@
     const pHead = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.05, 0.05), gunMetal);
     pHead.position.set(0, 0.38, 0); // 손잡이 맨 끝에 쇳덩이 고정
     
-    // [수정1] 쇳덩이를 90도 회전시켜서 가로('ㅡ')에서 세로('ㅣ')로 바꿈
     pHead.rotation.y = Math.PI / 2; 
     
     pHandle.add(pHead);
     pickGroup.add(pHandle);
     
-    // [수정2] 무기를 조금 더 뒤로(카메라 쪽으로) 당기고, 우측 하단으로 내림
     pickGroup.position.set(0.25, -0.25, -0.15); 
     
-    // [수정3] 앞으로 뻗으면서 살짝 안쪽(왼쪽)으로 기울여서 쥐는 각도 형성
     pickGroup.rotation.set(-1.0, 0.3, 0);
     handToolGroup.add(pickGroup);
 
@@ -960,7 +1057,7 @@
       g.add(torso);
       
       const weaponMount = new THREE.Group();
-      weaponMount.position.set(0, 1.05, 0.15); 
+      weaponMount.position.set(0.17, 1.05, 0.35); 
       g.add(weaponMount);
 
       let armorMesh = null;
@@ -1025,7 +1122,6 @@
           chinstrap.position.set(0, 1.32, 0); g.add(chinstrap);
       }
       
-      // [수정] 양팔의 어깨 시작점(Y)을 총과 동일하게 가슴 높이(1.05)로 고정
       const armL = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.55, 0.12), cBody); 
       armL.position.set(-0.30, 1.05, 0); 
       armL.geometry.translate(0, -0.2, 0); 
@@ -1188,7 +1284,6 @@
         let timeSinceShoot = now - e.lastShoot;
         let isCombatAiming = (true3DDist < 25);
 
-        // [수정] 무기 위치와 양팔 각도 완벽 조정 (가슴 높이, 우측 밀착, 정조준 비대칭 파지)
         if (timeSinceShoot < 450) {
             let t = timeSinceShoot / 450; 
             let kick = (t < 0.12) ? (t / 0.12) : 1.0 - Math.pow((t - 0.12) / 0.88, 2);
@@ -2031,7 +2126,6 @@
     function startGame(mode, hard, superHard = false) {
       const hasSeenIntro = safeGetItem('myBunkerHasSeenIntro', false);
       
-      // 처음 플레이할 때만 컷신 재생, 이후에는 바로 게임 진입
       if (!hasSeenIntro && !superHard) {
           playIntroCutscene(mode, hard, superHard);
       } else {
@@ -2049,7 +2143,6 @@
         
         container.style.display = 'flex';
         
-        // 유저가 직접 제작한 고품질 컷신 이미지 링크 적용 (직접 링크 .png 형태)
         const scenes = [
             "https://i.imgur.com/Jc6vTWj.png",
             "https://i.imgur.com/gLE8jxM.png",
@@ -2063,19 +2156,16 @@
                 return;
             }
             imgEl.style.opacity = 0;
-            // 1초 뒤 다음 이미지로 교체 후 페이드 인
             cutsceneTimeouts.push(setTimeout(() => {
                 imgEl.src = scenes[step];
                 imgEl.style.opacity = 1;
                 step++;
-                // 4초 대기 후 다음 씬 호출
                 cutsceneTimeouts.push(setTimeout(nextScene, 4000));
             }, 1000)); 
         };
 
         skipBtn.onclick = () => { endCutscene(mode, hard, superHard); };
 
-        // 첫 번째 컷신 즉시 시작
         imgEl.src = scenes[0];
         setTimeout(() => imgEl.style.opacity = 1, 100);
         step = 1;
@@ -2087,7 +2177,6 @@
         document.getElementById('cutscene-container').style.opacity = 0;
         safeSetItem('myBunkerHasSeenIntro', true);
         
-        // 시네마틱 창이 부드럽게 사라진 후 게임 진짜 시작
         setTimeout(() => {
             document.getElementById('cutscene-container').style.display = 'none';
             executeGameStart(mode, hard, superHard);
@@ -2104,7 +2193,7 @@
           MAX_ENEMIES = 150; showToast("🔥 [SYSTEM] 슈퍼 하드 무한 모드 시작..."); 
       } else if(isHardMode) { 
           MAX_ENEMIES = 100; showToast("[SYSTEM] 지옥 난이도 활성화."); 
-          document.getElementById('gas-hint').style.display = 'block';
+          document.getElementById('gas-hint')?.style.setProperty('display', 'block');
       } else { 
           showToast("[SYSTEM] 일반 난이도 시작."); 
       }
@@ -2143,7 +2232,7 @@
         
         realTimeSeconds++; 
         
-        // [수정] 15초 고정 상승이 아니라 20초 ~ 2시간(7200초) 사이 랜덤한 시간으로 가짜 시간 흐름 적용
+        // 랜덤 시계 효과
         let randomJump = Math.floor(Math.random() * (7200 - 20 + 1)) + 20;
         inGameTimeSeconds += randomJump; 
         
@@ -2310,7 +2399,6 @@
       const modal = document.getElementById('ending-modal'); const title = document.getElementById('ending-title');
       const sub = document.getElementById('ending-subtitle'); const desc = document.getElementById('ending-desc');
 
-      // [추가] 스피드런 및 랭킹 데이터 처리
       let timeStr = `${String(Math.floor(realTimeSeconds/60)).padStart(2,'0')}:${String(realTimeSeconds%60).padStart(2,'0')}`;
       let rec = safeGetItem('myBunkerRecords', { fast_VICTORY: 9999, fast_ARGENTINA: 9999, fast_ATOMIC: 9999, fast_UBOAT: 9999, long_SUPER_HARD: 0 });
       let isNewRecord = false;
@@ -2353,24 +2441,25 @@
     function showCollection() {
        document.getElementById('collection-modal').style.display = 'flex';
        const list = document.getElementById('collection-list'); list.innerHTML = '';
+       
        const allEndings = [
-         { id: 'DEATH', name: 'K.I.A (전사)', hint: '일반적인 죽음을 맞이하십시오.' },
-         { id: 'DEFEAT', name: 'EXECUTED (처형)', hint: '스탈린 보스전에서 패배하십시오.' },
-         { id: 'VICTORY', name: 'SURVIVED (진 엔딩)', hint: '대원수 스탈린을 처치하고 살아남으십시오.' },
-         { id: 'ARGENTINA', name: '히든: 아르헨티나 도주', hint: '??? (히든 엔딩)' },
-         { id: 'ATOMIC', name: '히든: 원자로', hint: '??? (히든 엔딩)' },
-         { id: 'UBOAT', name: '히든: U-보트', hint: '??? (히든 엔딩)' }
+         { id: 'DEATH', name: {ko:'K.I.A (전사)', en:'K.I.A', ja:'K.I.A (戦死)'}, hint: {ko:'일반적인 죽음을 맞이하십시오.', en:'Meet a normal death.', ja:'一般的な死を迎えてください。'} },
+         { id: 'DEFEAT', name: {ko:'EXECUTED (처형)', en:'EXECUTED', ja:'EXECUTED (処刑)'}, hint: {ko:'스탈린 보스전에서 패배하십시오.', en:'Lose in the Stalin boss fight.', ja:'スターリンのボス戦で敗北してください。'} },
+         { id: 'VICTORY', name: {ko:'SURVIVED (진 엔딩)', en:'SURVIVED (True Ending)', ja:'SURVIVED (真エンディング)'}, hint: {ko:'대원수 스탈린을 처치하고 살아남으십시오.', en:'Defeat Stalin and survive.', ja:'大元帥スターリンを倒して生き残ってください。'} },
+         { id: 'ARGENTINA', name: {ko:'히든: 아르헨티나 도주', en:'Hidden: Escape to Argentina', ja:'隠し: アルゼンチン逃亡'}, hint: {ko:'??? (히든 엔딩)', en:'??? (Hidden Ending)', ja:'??? (隠しエンディング)'} },
+         { id: 'ATOMIC', name: {ko:'히든: 원자로', en:'Hidden: Atomic Reactor', ja:'隠し: 原子炉'}, hint: {ko:'??? (히든 엔딩)', en:'??? (Hidden Ending)', ja:'??? (隠しエンディング)'} },
+         { id: 'UBOAT', name: {ko:'히든: U-보트', en:'Hidden: U-Boat', ja:'隠し: Uボート'}, hint: {ko:'??? (히든 엔딩)', en:'??? (Hidden Ending)', ja:'??? (隠しエンディング)'} }
        ];
+       
        document.getElementById('collection-count').innerText = `${collectedEndings.length}/6 달성`;
        allEndings.forEach(e => {
           const div = document.createElement('div');
           div.style.marginBottom = '10px'; div.style.padding = '10px'; div.style.background = 'rgba(255,255,255,0.1)'; div.style.borderRadius = '5px';
-          if (collectedEndings.includes(e.id)) { div.innerHTML = `<span style="color:#2ecc71;font-weight:bold;">[해금] ${e.name}</span>`; } 
-          else { div.innerHTML = `<span style="color:#e74c3c;font-weight:bold;">[미해금]</span> <span style="color:#aaa;">${e.hint}</span>`; }
+          if (collectedEndings.includes(e.id)) { div.innerHTML = `<span style="color:#2ecc71;font-weight:bold;">[해금] ${e.name[currentLang]}</span>`; } 
+          else { div.innerHTML = `<span style="color:#e74c3c;font-weight:bold;">[미해금]</span> <span style="color:#aaa;">${e.hint[currentLang]}</span>`; }
           list.appendChild(div);
        });
        
-       // [추가] 스피드런 및 랭킹 기록 표시
        let rec = safeGetItem('myBunkerRecords', { fast_VICTORY: 9999, fast_ARGENTINA: 9999, fast_ATOMIC: 9999, fast_UBOAT: 9999, long_SUPER_HARD: 0 });
        const formatT = (s) => s === 9999 ? "--:--" : `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
        
