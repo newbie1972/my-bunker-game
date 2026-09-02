@@ -9,7 +9,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#000000">
   
-  <title>나의 벙커 (My Bunker) - Phase 15 (PWA App Packaging)</title>
+  <title>나의 벙커 (My Bunker) - Phase 16 (Telemetry & Mobile Optimized)</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; touch-action: none; }
     body, html { width: 100%; height: 100%; overflow: hidden; background-color: #000; font-family: 'Courier New', Courier, monospace; color: #fff; overscroll-behavior: none; }
@@ -112,24 +112,25 @@
     /* 2배 버프 타이머 HUD 효과 */
     #buff-timer-display { font-size:16px; font-weight:bold; color:#f1c40f; display:none; background:rgba(20,20,20,0.9); padding:4px 8px; border-radius:4px; border:1px solid #f39c12; margin-left:10px; font-family:monospace; box-shadow: 0 0 10px rgba(241,196,15,0.4); }
 
-    @media screen and (max-height: 500px) {
-        #hud { top: 40px; left: 10px; right: 10px; }
-        .hud-card { padding: 8px 10px; font-size: 11px; }
+    /* 모바일 가로(Landscape) 및 Z플립/폴드 비율 대응 반응형 CSS */
+    @media screen and (max-height: 500px), screen and (max-aspect-ratio: 4/3) {
+        #hud { top: 15px; left: max(10px, env(safe-area-inset-left)); right: max(10px, env(safe-area-inset-right)); }
+        .hud-card { padding: 6px 10px; font-size: 11px; }
         .hp-bar-bg { width: 100px; height: 6px; }
         #time-display { font-size: 14px !important; }
         #compass-container { top: 5px; padding: 4px 15px; font-size: 11px; }
-        #set-btn-text { top: 5px; right: 5px; padding: 6px 10px; font-size: 11px; }
-        #scrap-display { top: 5px; left: 5px; padding: 6px 10px; font-size: 12px; }
-        #buff-timer-display { font-size: 12px; }
+        #set-btn-text { top: 5px; right: max(5px, env(safe-area-inset-right)); padding: 6px 10px; font-size: 11px; }
+        #scrap-display { top: 5px; left: max(5px, env(safe-area-inset-left)); padding: 6px 10px; font-size: 12px; }
+        #buff-timer-display { font-size: 11px; margin-left: 5px; padding: 2px 4px; }
         
-        #tool-bar { bottom: 10px; gap: 5px; }
+        #tool-bar { bottom: max(10px, env(safe-area-inset-bottom)); gap: 5px; }
         .tool-slot { width: 45px; height: 45px; font-size: 9px; border-radius: 8px; }
         .tool-slot .icon svg { width: 20px; height: 20px; }
         
-        #joystick-zone { width: 110px; height: 110px; bottom: 20px; left: 20px; }
+        #joystick-zone { width: 110px; height: 110px; bottom: max(15px, env(safe-area-inset-bottom)); left: max(15px, env(safe-area-inset-left)); }
         #joystick-knob { width: 40px; height: 40px; top: 35px; left: 35px; }
         
-        .mobile-action-group { bottom: 20px; right: 20px; gap: 10px; }
+        .mobile-action-group { bottom: max(15px, env(safe-area-inset-bottom)); right: max(15px, env(safe-area-inset-right)); gap: 10px; }
         .mobile-sub-group { gap: 10px; }
         .btn-fire { width: 75px; height: 75px; }
         .btn-fire svg { width: 30px; height: 30px; }
@@ -345,7 +346,15 @@
     <h1 id="ending-title">전사 하였습니다</h1>
     <h2 id="ending-subtitle"></h2>
     <p id="ending-desc">00분 00초간 생존했습니다.</p>
-    <button id="ending-retry-btn" class="platform-btn" onclick="location.reload()" style="background:#2c3e50; border-color:#34495e;">다시 도전하기</button>
+    
+    <!-- [Phase 16: Telemetry Data Box] -->
+    <div id="telemetry-box" style="margin-top: 15px; padding: 12px; background: rgba(0,0,0,0.8); border: 1px dashed #7f8c8d; border-radius: 5px; font-size: 14px; color: #bdc3c7; text-align: left; width: 100%; max-width: 320px; display: none;">
+        <div style="color: #f39c12; font-weight: bold; margin-bottom: 8px; text-align: center;">📊 테스트 데이터 (스크린샷용)</div>
+        <div style="margin-bottom: 4px;">💀 처치한 적: <span id="tel-kills" style="color: #e74c3c; font-weight:bold;">0</span>명</div>
+        <div>⛏️ 최대 도달 깊이: <span id="tel-depth" style="color: #3498db; font-weight:bold;">0</span>m</div>
+    </div>
+
+    <button id="ending-retry-btn" class="platform-btn" onclick="location.reload()" style="background:#2c3e50; border-color:#34495e; margin-top: 20px;">다시 도전하기</button>
   </div>
 
   <div id="settings-btn" onclick="openSettings()" style="position:absolute; top:15px; right:15px; z-index:20; cursor:pointer; background:rgba(20,20,20,0.8); padding:8px 12px; border-radius:6px; border:1px solid #555; display:flex; gap:8px; align-items:center; color:#ddd; font-weight:bold; font-size:12px; box-shadow:0 4px 6px rgba(0,0,0,0.5); backdrop-filter:blur(4px);">
@@ -528,6 +537,10 @@
     let scrap = parseInt(safeGetItem('myBunkerScrap', 0)) || 0;
     let upgrades = safeGetItem('myBunkerUpgrades', { hp: 0, pickaxe: 0, ammo: 0, speed: 0, regen: 0, fist: 0 });
     let is2xScrapActive = false;
+    
+    // [Phase 16: Telemetry Variables]
+    let runKillCount = 0;
+    let runMaxDepth = 0;
     
     document.getElementById('scrap-val').innerText = scrap;
 
@@ -820,6 +833,11 @@
     let _moveVec = new THREE.Vector3();
     function updatePlayer() {
       if (!isGameStarted || gameState === 'START' || gameState === 'ENDING' || gameState === 'TRANSITION' || gameState === 'AD_PLAYING' || gameState === 'REVIVE_WAIT') return;
+      
+      // [Phase 16] Telemetry: Update Max Depth
+      let currentDepth = Math.max(0, Math.floor((1.0 - player.pos.y) * 1.5));
+      if (currentDepth > runMaxDepth) runMaxDepth = currentDepth;
+      
       camera.quaternion.setFromEuler(new THREE.Euler(player.rotX, player.rotY, 0, 'YXZ')); _moveVec.set(0, 0, 0);
       if (platformMode === 'PC') { if (keys['KeyW']) _moveVec.z -= 1; if (keys['KeyS']) _moveVec.z += 1; if (keys['KeyA']) _moveVec.x -= 1; if (keys['KeyD']) _moveVec.x += 1; if (keys['Space']) triggerJump(); } else { _moveVec.x = joystickDir.x; _moveVec.z = joystickDir.y; }
       player.isMoving = (_moveVec.lengthSq() > 0 || player.velocityY !== 0);
@@ -852,20 +870,20 @@
         const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(0, 0), camera); const hitEnemies = ray.intersectObjects(enemyGroup.children, true); const hitBoss = (gameState === 'BOSS' || gameState === 'SUPER_HARD') && stalin ? ray.intersectObjects(stalin.group.children, true) : []; const allHits = [...hitEnemies, ...hitBoss].sort((a,b) => a.distance - b.distance);
         if (allHits.length > 0) { const hitEnemySet = new Set(); for (let i = 0; i < allHits.length; i++) { if (hitWall && hitWall.distance < allHits[i].distance) break; if (i === 0) finalHitPos = allHits[i].point; const hitObj = allHits[i].object;
                 if (hitObj.userData.isBoss) { let dmg = 35; if (hitObj.userData.isHead) { dmg = 100; showToast("[CRITICAL] 헤드샷 관통!"); showHitMarker(true); } else { showHitMarker(false); } if (stalin.actionState === 'WHIRLWIND') { dmg *= 0.5; showToast("대회전! 데미지 반감!"); } stalin.hp -= dmg; flashEnemyColor(stalin.group.children); continue; }
-                const en = enemies.find(e => e.group === hitObj.userData.parent); if (en && !hitEnemySet.has(en)) { hitEnemySet.add(en); let isHead = hitObj.userData.isHead; if (en.isSoviet) { if (hitObj.userData.isArmor || !isHead) { showToast("[ARMOR] 도탄 됨! (피해 감소)"); en.hp -= 5; showHitMarker(false); } else { showToast("[HEADSHOT] 치명타 및 중화기 획득!"); en.hp -= 150; showHitMarker(true); player.ammoClip = Math.min(player.ammoClip + 3, 999); updateHUD(); if (!hasPanzerfaust) { hasPanzerfaust = true; panzerGroup.visible = (player.activeSlot === 4); document.getElementById('slot-4').style.display = 'flex'; showToast("🚀 판저파우스트 획득! (4번 슬롯)"); } } } else { let dmg = 35; if (isHead) { dmg = 100; showToast("[CRITICAL] 헤드샷!"); showHitMarker(true); } else { showHitMarker(false); } en.hp -= dmg; } flashEnemyColor(en.group.children); if (en.hp <= 0) { enemyGroup.remove(en.group); const idx = enemies.indexOf(en); if (idx > -1) enemies.splice(idx, 1); if(Math.random() < 0.35) addScrap(en.isSoviet ? 3 : 1); if(Math.random() < 0.20) { player.ammoReserve += 2; showToast("[AMMO] 예비 탄약 +2 획득"); updateHUD(); } } } } } createBulletTracer(pMuzzle.getWorldPosition(new THREE.Vector3()), finalHitPos);
+                const en = enemies.find(e => e.group === hitObj.userData.parent); if (en && !hitEnemySet.has(en)) { hitEnemySet.add(en); let isHead = hitObj.userData.isHead; if (en.isSoviet) { if (hitObj.userData.isArmor || !isHead) { showToast("[ARMOR] 도탄 됨! (피해 감소)"); en.hp -= 5; showHitMarker(false); } else { showToast("[HEADSHOT] 치명타 및 중화기 획득!"); en.hp -= 150; showHitMarker(true); player.ammoClip = Math.min(player.ammoClip + 3, 999); updateHUD(); if (!hasPanzerfaust) { hasPanzerfaust = true; panzerGroup.visible = (player.activeSlot === 4); document.getElementById('slot-4').style.display = 'flex'; showToast("🚀 판저파우스트 획득! (4번 슬롯)"); } } } else { let dmg = 35; if (isHead) { dmg = 100; showToast("[CRITICAL] 헤드샷!"); showHitMarker(true); } else { showHitMarker(false); } en.hp -= dmg; } flashEnemyColor(en.group.children); if (en.hp <= 0) { enemyGroup.remove(en.group); const idx = enemies.indexOf(en); if (idx > -1) enemies.splice(idx, 1); runKillCount++; if(Math.random() < 0.35) addScrap(en.isSoviet ? 3 : 1); if(Math.random() < 0.20) { player.ammoReserve += 2; showToast("[AMMO] 예비 탄약 +2 획득"); updateHUD(); } } } } } createBulletTracer(pMuzzle.getWorldPosition(new THREE.Vector3()), finalHitPos);
       } else if (player.activeSlot === 2) { 
         if (isPunching) return; isPunching = true; sfx.punch(); const punchSpeed = 0.5 - (upgrades.fist * 0.1); const currentPunchRange = PUNCH_RANGE + (upgrades.fist * 0.8);
         fistL.position.z = -0.5; fistL.position.y = -0.1; fistL.rotation.x = -0.5; fistL.rotation.z = 0.3; setTimeout(() => { fistL.position.z = -0.25; fistL.position.y = -0.18; fistL.rotation.x = 0; fistL.rotation.z = 0; }, punchSpeed * 100); setTimeout(() => { fistR.position.z = -0.5; fistR.position.y = -0.1; fistR.rotation.x = -0.5; fistR.rotation.z = -0.3; setTimeout(() => { fistR.position.z = -0.25; fistR.position.y = -0.18; fistR.rotation.x = 0; fistR.rotation.z = 0; isPunching = false; }, punchSpeed * 150); }, punchSpeed * 150);
         const punchWall = fastVoxelRaycast(camPos, rayDir, currentPunchRange + 0.8); const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(0, 0), camera); const hitEnemies = ray.intersectObjects(enemyGroup.children, true); 
         if ((gameState === 'BOSS' || gameState === 'SUPER_HARD') && stalin) { const hitsBoss = ray.intersectObjects(stalin.group.children, true); if (hitsBoss.length > 0 && hitsBoss[0].distance < currentPunchRange + 0.8) { sfx.punchHit(); stalin.hp -= 50; showHitMarker(false); player.hp = Math.min(player.maxHp, player.hp + 2); flashEnemyColor(stalin.group.children); updateHUD(); showToast("[HEAL] 펀치 피흡 (+2)"); } } 
-        if (hitEnemies.length > 0 && hitEnemies[0].distance < currentPunchRange + 0.8 && (!punchWall || punchWall.distance > hitEnemies[0].distance)) { const hitObj = hitEnemies[0].object; const en = enemies.find(e => e.group === hitObj.userData.parent); if (en) { if (en.isSoviet && hitObj.userData.isArmor) { sfx.punchHit(); damagePlayer(5); showToast("[ARMOR] 흉갑 도탄! (역피해)"); showHitMarker(false); } else { sfx.punchHit(); en.hp -= 50; showHitMarker(false); player.hp = Math.min(player.maxHp, player.hp + 2); flashEnemyColor(en.group.children); updateHUD(); showToast("[HEAL] 펀치 피흡 (+2)"); if (en.hp <= 0) { enemyGroup.remove(en.group); enemies.splice(enemies.indexOf(en), 1); if(Math.random() < 0.35) addScrap(en.isSoviet ? 3 : 1); if(Math.random() < 0.20) { player.ammoReserve += 2; showToast("[AMMO] 예비 탄약 +2 획득"); updateHUD(); } } } } }
+        if (hitEnemies.length > 0 && hitEnemies[0].distance < currentPunchRange + 0.8 && (!punchWall || punchWall.distance > hitEnemies[0].distance)) { const hitObj = hitEnemies[0].object; const en = enemies.find(e => e.group === hitObj.userData.parent); if (en) { if (en.isSoviet && hitObj.userData.isArmor) { sfx.punchHit(); damagePlayer(5); showToast("[ARMOR] 흉갑 도탄! (역피해)"); showHitMarker(false); } else { sfx.punchHit(); en.hp -= 50; showHitMarker(false); player.hp = Math.min(player.maxHp, player.hp + 2); flashEnemyColor(en.group.children); updateHUD(); showToast("[HEAL] 펀치 피흡 (+2)"); if (en.hp <= 0) { enemyGroup.remove(en.group); enemies.splice(enemies.indexOf(en), 1); runKillCount++; if(Math.random() < 0.35) addScrap(en.isSoviet ? 3 : 1); if(Math.random() < 0.20) { player.ammoReserve += 2; showToast("[AMMO] 예비 탄약 +2 획득"); updateHUD(); } } } } }
         if ((gameState === 'BUNKER' || gameState === 'ATOMIC_WAVE') && punchWall && punchWall.distance < 4.0) { if (punchWall.voxel.type === 'portal') triggerEnding('ARGENTINA'); if (punchWall.voxel.type === 'uboat') triggerEnding('UBOAT'); }
       } else if (player.activeSlot === 3) { 
         const digWall = fastVoxelRaycast(camPos, rayDir, 4.5); if (digWall) { const v = digWall.voxel; if (v.type === 'bedrock' || v.type === 'portal') { showToast("[SYSTEM] 절대 파괴 불가 지형"); return; } if (v.type === 'uboat') { showToast("[SYSTEM] U-보트는 주먹으로 조작해야 합니다."); return; } sfx.dig(); v.hp -= player.digPower; spawnParticles(v.x, v.y, v.z, v.type); handToolGroup.rotation.x = -0.3; setTimeout(() => handToolGroup.rotation.x = 0, 100); if (v.hp <= 0) { if (v.type === 'atomic_door') triggerAtomicWave(); removeVoxel(v.x, v.y, v.z); if (upgrades.pickaxe > 0 && Math.random() < (upgrades.pickaxe * 0.10)) { player.hp = Math.min(player.maxHp, player.hp + 2); updateHUD(); document.getElementById('blood-overlay').style.boxShadow = 'inset 0 0 50px rgba(46,204,113,0.5)'; setTimeout(() => document.getElementById('blood-overlay').style.boxShadow = 'inset 0 0 150px rgba(255,0,0,0.8)', 300); } if (Math.random() < 0.05) addScrap(1); } else { if (['atomic_door', 'water_rock'].includes(v.type)) showToast(`[특수 지형] 파쇄 중... (${v.hp}/${v.maxHp})`); else showToast(`[DIG] 파쇄 중... (${v.hp}/${v.maxHp})`); } }
       } else if (player.activeSlot === 4 && hasPanzerfaust) {
         if(!isSuperHard) { hasPanzerfaust = false; panzerGroup.visible = false; document.getElementById('slot-4').style.display = 'none'; } panzerGroup.position.z += 0.2; setTimeout(() => panzerGroup.position.z -= 0.2, 100); if(!isSuperHard) setTimeout(() => selectTool(1), 300); sfx.explosion(); let target = hitWall ? hitWall.point : camPos.clone().add(rayDir.clone().multiplyScalar(15)); const expl = new THREE.Mesh(explGeo, new THREE.MeshBasicMaterial({color: 0xff4400, transparent: true, opacity: 0.9})); expl.position.copy(target); scene.add(expl); let scale = 1; const explAnim = setInterval(() => { scale += 0.5; expl.scale.set(scale, scale, scale); expl.material.opacity -= 0.1; if (expl.material.opacity <= 0) { clearInterval(explAnim); scene.remove(expl); expl.material.dispose(); } }, 50);
         const cx = Math.floor(target.x); const cy = Math.floor(target.y); const cz = Math.floor(target.z); for(let dx=-1; dx<=1; dx++) for(let dy=-1; dy<=1; dy++) for(let dz=-1; dz<=1; dz++) { removeVoxel(cx+dx, cy+dy, cz+dz, false); }
-        let hitEnemyWithRocket = false; for (let i = enemies.length - 1; i >= 0; i--) { if (enemies[i].group.position.distanceTo(target) < 4.0) { enemyGroup.remove(enemies[i].group); enemies.splice(i, 1); hitEnemyWithRocket = true; if(Math.random() < 0.35) addScrap(1); if(Math.random() < 0.20) { player.ammoReserve += 2; showToast("[AMMO] 예비 탄약 +2 획득"); updateHUD(); } } }
+        let hitEnemyWithRocket = false; for (let i = enemies.length - 1; i >= 0; i--) { if (enemies[i].group.position.distanceTo(target) < 4.0) { enemyGroup.remove(enemies[i].group); enemies.splice(i, 1); runKillCount++; hitEnemyWithRocket = true; if(Math.random() < 0.35) addScrap(1); if(Math.random() < 0.20) { player.ammoReserve += 2; showToast("[AMMO] 예비 탄약 +2 획득"); updateHUD(); } } }
         if (stalin && stalin.group.position.distanceTo(target) < 4.0) { stalin.hp -= 150; flashEnemyColor(stalin.group.children); showToast("로켓 명중! (보스에게는 150 피해)"); hitEnemyWithRocket = true; } if (hitEnemyWithRocket) showHitMarker(true);
       }
     }
@@ -892,7 +910,6 @@
     function selectTool(n) { if(!isGameStarted || gameState === 'START' || gameState === 'ENDING') return; if(!isHardMode && !isSuperHard && gameState === 'BOSS' && n !== 2) { showToast("[SYSTEM] 보스전(일반)에서는 주먹만 사용할 수 있습니다!"); return; } player.activeSlot = n; document.querySelectorAll('.tool-slot').forEach(e=>e.classList.remove('active')); document.getElementById(`slot-${n}`).classList.add('active'); updateHandModel(); }
     function triggerReload(e) { if(e) { e.preventDefault(); e.stopPropagation(); } if (!isGameStarted || gameState === 'START' || player.isReloading || player.ammoClip === player.maxClip || player.ammoReserve <= 0) return; player.isReloading = true; sfx.reload(); showToast("[SYSTEM] 장전 중..."); let rAngle = 0; const rAnim = setInterval(() => { rAngle += 0.3; pistolGroup.rotation.x = -Math.abs(Math.sin(rAngle)) * 1.5; pistolGroup.position.y = -0.15 - Math.abs(Math.sin(rAngle)) * 0.1; if(rAngle > Math.PI) { clearInterval(rAnim); pistolGroup.rotation.x = 0; pistolGroup.position.y = -0.15; } }, 30); setTimeout(() => { const amt = Math.min(player.maxClip - player.ammoClip, player.ammoReserve); player.ammoClip += amt; player.ammoReserve -= amt; player.isReloading = false; updateHUD(); }, 1000); }
 
-    // PC 포인터 락 해제 감지로 ESC 설정창 켜기 완벽 대응
     document.addEventListener('pointerlockchange', () => {
         if (isGameStarted && (gameState === 'BUNKER' || gameState === 'BOSS' || gameState === 'SUPER_HARD' || gameState === 'FINAL_WAVE' || gameState === 'ATOMIC_WAVE')) {
             if (!document.pointerLockElement && document.getElementById('settings-modal').style.display !== 'flex') {
@@ -956,6 +973,11 @@
 
     function executeGameStart(mode, hard, superHard, useAirdrop, use2xScrap) {
       platformMode = mode; isHardMode = hard; isSuperHard = superHard; hasRevivedThisRun = false;
+      
+      // [Phase 16] Telemetry Reset
+      runKillCount = 0;
+      runMaxDepth = 0;
+
       initAudio(); document.getElementById('start-modal').style.display = 'none'; document.getElementById('collection-modal').style.display = 'none'; document.getElementById('upgrade-modal').style.display = 'none';
       if(audioCtx) nextBeatTime = audioCtx.currentTime + 0.1;
 
@@ -970,7 +992,6 @@
       if (isSuperHard) { buildRuinsWorld(); player.pos.set(0, 1.5, 10); player.rotY = Math.PI; hasPanzerfaust = true; document.getElementById('slot-4').style.display = 'flex'; updateHUD(); spawnStalinBoss(); } 
       else { buildInitialWorld(); }
 
-      // [14차 광고 보상 적용 (단일 판)]
       if (useAirdrop && !isSuperHard) {
           hasPanzerfaust = true; document.getElementById('slot-4').style.display = 'flex';
           player.ammoClip = player.maxClip * 2; player.ammoReserve = Math.max(0, player.ammoReserve - player.maxClip);
@@ -1008,7 +1029,7 @@
         if (!isGameStarted || gameState === 'ENDING' || gameState === 'START' || gameState === 'AD_PLAYING' || gameState === 'REVIVE_WAIT') return;
         realTimeSeconds++; 
         let randomJump = Math.floor(Math.random() * (7200 - 20 + 1)) + 20; inGameTimeSeconds += randomJump; 
-        let regenDelayNormal = 3000 - (upgrades.regen * 500); let regenAmountNormal = 2 + (upgrades.regen * 2); let regenDelayHard = 1000 - (upgrades.regen * 200); let regenAmountHard = 20 + (upgrades.regen * 5);      
+        let regenDelayNormal = 3000 - (upgrades.regen * 500); let regenAmountNormal = 2 + (upgrades.regen * 2); let regenDelayHard = 1000 - (upgrades.regen * 200); let regenAmountHard = 20 + (upgrades.regen * 5);     
         if (isSuperHard || isHardMode) { if (!player.isMoving && Date.now() - player.lastDamageTime > regenDelayHard && player.hp < player.maxHp) { player.hp = Math.min(player.maxHp, player.hp + regenAmountHard); updateHUD(); } } else { if (Date.now() - player.lastDamageTime > regenDelayNormal && player.hp < player.maxHp) { player.hp = Math.min(player.maxHp, player.hp + regenAmountNormal); updateHUD(); } }
         
         const startTotalSecs = (15 * 3600) + (30 * 60) + inGameTimeSeconds; const h = Math.floor(startTotalSecs / 3600) % 24; const m = Math.floor(startTotalSecs / 60) % 60; const s = startTotalSecs % 60; document.getElementById('time-display').innerText = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
@@ -1032,7 +1053,7 @@
         if (maxDepth === 30) bottomY = Math.max(MIN_DIG_Y, bottomY - maxDepth); else bottomY = Math.max(MIN_DIG_Y, bottomY);
         sfx.explosion(); camera.position.x += (Math.random()-0.5)*0.6; camera.position.z += (Math.random()-0.5)*0.6; const expl = new THREE.Mesh(explGeo, new THREE.MeshBasicMaterial({color: 0xff4400, transparent: true, opacity: 0.9})); expl.position.set(cx, Math.max(hitY, MIN_DIG_Y), cz); scene.add(expl); let scale = 1; const explAnim = setInterval(() => { scale += 0.2; expl.scale.set(scale, scale, scale); expl.material.opacity -= 0.15; if (expl.material.opacity <= 0) { clearInterval(explAnim); scene.remove(expl); expl.material.dispose(); } }, 50);
         const bombRadius = isHardMode ? 1 : 1; isBatching = true; for(let dx=-bombRadius; dx<=bombRadius; dx++) for(let dz=-bombRadius; dz<=bombRadius; dz++) for(let y=hitY+2; y>=bottomY; y--) removeVoxel(cx+dx, y, cz+dz, true); isBatching = false; dirtyVoxels.forEach(key => { const parts = key.split(','); updateVoxelMesh(parseInt(parts[0]), parseInt(parts[1]), parseInt(parts[2])); }); dirtyVoxels.clear();
-        const dmgRadius = isHardMode ? 2.0 : 2.0; if (player.pos.y >= bottomY - 1 && player.pos.y <= hitY + 3 && Math.hypot(player.pos.x-cx, player.pos.z-cz) < dmgRadius) damagePlayer(25); for (let i = enemies.length - 1; i >= 0; i--) { if (enemies[i].group.position.y >= bottomY - 1 && enemies[i].group.position.y <= hitY + 3 && Math.hypot(enemies[i].group.position.x - cx, enemies[i].group.position.z - cz) < dmgRadius) { enemyGroup.remove(enemies[i].group); enemies.splice(i, 1); if(Math.random() < 0.35) addScrap(1); } }
+        const dmgRadius = isHardMode ? 2.0 : 2.0; if (player.pos.y >= bottomY - 1 && player.pos.y <= hitY + 3 && Math.hypot(player.pos.x-cx, player.pos.z-cz) < dmgRadius) damagePlayer(25); for (let i = enemies.length - 1; i >= 0; i--) { if (enemies[i].group.position.y >= bottomY - 1 && enemies[i].group.position.y <= hitY + 3 && Math.hypot(enemies[i].group.position.x - cx, enemies[i].group.position.z - cz) < dmgRadius) { enemyGroup.remove(enemies[i].group); enemies.splice(i, 1); runKillCount++; if(Math.random() < 0.35) addScrap(1); } }
     }
 
     function triggerFinalBombing() {
@@ -1075,6 +1096,12 @@
       else if (type === 'ARGENTINA') { title.innerText = "ESCAPED"; title.style.color = "#3498db"; sub.innerText = "히든 엔딩: 아르헨티나의 태양"; }
       else if (type === 'ATOMIC') { title.innerText = "ATOMIC"; title.style.color = "#00ffaa"; sub.innerText = "히든 엔딩: 방사능 낙원"; }
       else if (type === 'UBOAT') { title.innerText = "U-BOAT"; title.style.color = "#c0392b"; sub.innerText = "히든 엔딩: 슈프레강의 유령"; }
+      
+      // [Phase 16: Telemetry Data Output]
+      document.getElementById('tel-kills').innerText = runKillCount;
+      document.getElementById('tel-depth').innerText = runMaxDepth;
+      document.getElementById('telemetry-box').style.display = 'block';
+
       modal.style.display = 'flex'; setTimeout(() => modal.style.opacity = 1, 100);
     }
     
@@ -1094,7 +1121,20 @@
     document.getElementById('sfx-slider').addEventListener('input', (e) => { globalSfxVolume = parseFloat(e.target.value); localStorage.setItem('myBunkerSfxVol', globalSfxVolume); document.getElementById('sfx-val').innerText = `${Math.round(globalSfxVolume * 100)}%`; });
 
     function animate() { requestAnimationFrame(animate); updatePlayer(); updateEnemies(); updateStalin(); updateParticles(); updateDynamicBGM(); renderer.render(scene, camera); }
-    animate(); window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
+    
+    // [Z플립 & 폴드 모바일 동적 FOV 자동 보정]
+    window.addEventListener('resize', () => { 
+        const aspect = window.innerWidth / window.innerHeight; 
+        camera.aspect = aspect; 
+        if (aspect > 2.0) camera.fov = 60; // Z플립 가로(초광각): 왜곡 방지
+        else if (aspect < 1.5) camera.fov = 90; // Z폴드/태블릿(정방형): 시야각 확보
+        else camera.fov = 75; // 일반 비율
+        camera.updateProjectionMatrix(); 
+        renderer.setSize(window.innerWidth, window.innerHeight); 
+    });
+    // 초기 렌더링 시 FOV 1회 강제 적용
+    window.dispatchEvent(new Event('resize'));
+    animate();
 
     // [Phase 15] PWA (웹앱) 단일 파일 패키징 로직 (주소창 숨김 및 오프라인 구동)
     const pwaIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" fill="#2c3e50"/><path d="M128 384h256v64H128zm0-128h256v64H128zm0-128h256v64H128z" fill="#ecf0f1"/></svg>`;
