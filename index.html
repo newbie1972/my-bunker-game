@@ -11,9 +11,11 @@
   
   <title>나의 벙커 (My Bunker) - Phase 16 (Telemetry & Mobile Optimized)</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; touch-action: none; }
-    body, html { width: 100%; height: 100%; overflow: hidden; background-color: #000; font-family: 'Courier New', Courier, monospace; color: #fff; overscroll-behavior: none; }
-    #game-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
+    /* [수정] 글로벌 터치 잠금은 유지하되, UI 모달창에서는 풀기 위해 구조를 조정했습니다. */
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
+    body, html { width: 100%; height: 100%; overflow: hidden; background-color: #000; font-family: 'Courier New', Courier, monospace; color: #fff; overscroll-behavior: none; touch-action: none; }
+    
+    #game-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; touch-action: none; }
     
     #vignette { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.85) 120%); pointer-events: none; z-index: 5; transition: background 0.5s; }
     #gas-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, transparent 30%, rgba(46, 204, 113, 0.4) 100%); pointer-events: none; z-index: 6; opacity: 0; transition: opacity 0.5s; box-shadow: inset 0 0 50px rgba(46,204,113,0.3); }
@@ -52,7 +54,19 @@
     #fade-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; pointer-events: none; opacity: 0; transition: opacity 2s; z-index: 40; }
     #toast { position: absolute; top: 110px; left: 50%; transform: translateX(-50%); background: rgba(20, 20, 20, 0.95); border: 1px solid #e74c3c; color: #fff; padding: 10px 24px; border-radius: 4px; font-size: 13px; font-family: monospace; font-weight: bold; pointer-events: none; opacity: 0; transition: opacity 0.3s; z-index: 15; text-align: center; box-shadow: 0 4px 10px rgba(231,76,60,0.2); letter-spacing: 0.5px; text-transform: uppercase; }
 
-    .modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 50; text-align: center; padding: 20px; transition: opacity 1s; backdrop-filter: blur(5px); }
+    /* [CRITICAL FIX] 모달창 터치/스크롤 잠금 완벽 해제 및 반응형 스크롤 허용 */
+    .modal { 
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+        background: rgba(0, 0, 0, 0.95); 
+        display: flex; flex-direction: column; justify-content: center; align-items: center; 
+        z-index: 50; text-align: center; padding: 20px; transition: opacity 1s; backdrop-filter: blur(5px);
+        overflow-y: auto !important; /* 항상 수직 스크롤 허용 */
+        touch-action: pan-y !important; /* 모바일 드래그 스크롤 허용 (핵심) */
+    }
+    .modal * { 
+        touch-action: pan-y !important; /* 모달 내부 모든 요소의 터치 잠금 해제 */
+    }
+
     .modal h1 { font-size: 50px; color: #e74c3c; margin-bottom: 10px; letter-spacing: 4px; line-height: 1.2; text-shadow: 0 4px 15px rgba(231,76,60,0.5); font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif; }
     .modal h2 { font-size: 20px; color: #bdc3c7; margin-bottom: 30px; font-weight: normal; letter-spacing: 1px; }
     .btn-group { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; justify-content: center; }
@@ -82,13 +96,14 @@
     .upgrade-buy-btn:hover:not(:disabled) { background: #2ecc71; box-shadow: 0 0 10px rgba(46, 204, 113, 0.5); }
     .upgrade-buy-btn:disabled { background: #555; color: #888; cursor: not-allowed; }
 
-    #mobile-controls { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 12; display: none; }
-    #joystick-zone { position: absolute; bottom: 40px; left: 30px; width: 160px; height: 160px; background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(255, 255, 255, 0.15); border-radius: 50%; pointer-events: auto; backdrop-filter: blur(2px); }
+    #mobile-controls { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 12; display: none; touch-action: none; }
+    #joystick-zone { position: absolute; bottom: 40px; left: 30px; width: 160px; height: 160px; background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(255, 255, 255, 0.15); border-radius: 50%; pointer-events: auto; backdrop-filter: blur(2px); touch-action: none; }
     #joystick-knob { position: absolute; top: 50px; left: 50px; width: 60px; height: 60px; background: rgba(230, 126, 34, 0.8); border-radius: 50%; pointer-events: none; box-shadow: 0 4px 10px rgba(0,0,0,0.5); transform: translate(0, 0); }
-    #touch-look-zone { position: absolute; top: 80px; right: 0; width: 50%; height: calc(100% - 200px); pointer-events: auto; }
+    #touch-look-zone { position: absolute; top: 80px; right: 0; width: 50%; height: calc(100% - 200px); pointer-events: auto; touch-action: none; }
+    
     .mobile-action-group { position: absolute; bottom: 40px; right: 30px; display: flex; flex-direction: column; gap: 15px; align-items: flex-end; pointer-events: auto; }
     .mobile-sub-group { display: flex; gap: 15px; align-items: flex-end; }
-    .mobile-btn { background: rgba(20, 20, 20, 0.85); border: 2px solid #555; color: #ddd; border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 6px 12px rgba(0,0,0,0.6); backdrop-filter: blur(2px); transition: 0.1s; flex-direction: column; }
+    .mobile-btn { background: rgba(20, 20, 20, 0.85); border: 2px solid #555; color: #ddd; border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 6px 12px rgba(0,0,0,0.6); backdrop-filter: blur(2px); transition: 0.1s; flex-direction: column; touch-action: none; }
     .mobile-btn svg { width: 34px; height: 34px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     .mobile-btn:active { transform: scale(0.92); background: rgba(230, 126, 34, 0.8); border-color: #f39c12; color: #fff; }
     .btn-fire { width: 100px; height: 100px; border-color: #c0392b; background: rgba(142, 68, 61, 0.8); }
@@ -112,69 +127,70 @@
     /* 2배 버프 타이머 HUD 효과 */
     #buff-timer-display { font-size:16px; font-weight:bold; color:#f1c40f; display:none; background:rgba(20,20,20,0.9); padding:4px 8px; border-radius:4px; border:1px solid #f39c12; margin-left:10px; font-family:monospace; box-shadow: 0 0 10px rgba(241,196,15,0.4); }
 
-    /* 모바일 가로(Landscape) 및 좁은 화면 팝업/UI 완벽 압축 CSS */
-    @media screen and (max-height: 500px), screen and (max-width: 800px) {
-        /* [1] 인게임 조작 및 HUD 축소 (기존 완벽 코드 유지) */
-        #hud { top: 15px; left: max(10px, env(safe-area-inset-left)); right: max(10px, env(safe-area-inset-right)); }
+    /* [CRITICAL FIX] Z플립/폴드 모바일 가로(Landscape) 화면 팝업 잘림 및 UI 완벽 대응 */
+    @media screen and (max-height: 650px), screen and (max-width: 850px) {
+        /* 인게임 조작 및 HUD 안전영역 배치 */
+        #hud { top: max(15px, env(safe-area-inset-top)); left: max(10px, env(safe-area-inset-left)); right: max(10px, env(safe-area-inset-right)); }
         .hud-card { padding: 6px 10px; font-size: 11px; }
         .hp-bar-bg { width: 100px; height: 6px; }
         #time-display { font-size: 14px !important; }
-        #compass-container { top: 5px; padding: 4px 15px; font-size: 11px; }
-        #set-btn-text { top: 5px; right: max(5px, env(safe-area-inset-right)); padding: 6px 10px; font-size: 11px; }
-        #scrap-display { top: 5px; left: max(5px, env(safe-area-inset-left)); padding: 6px 10px; font-size: 12px; }
-        #buff-timer-display { font-size: 11px; margin-left: 5px; padding: 2px 4px; }
+        #compass-container { top: max(5px, env(safe-area-inset-top)); padding: 4px 15px; font-size: 11px; }
+        #set-btn-text { font-size: 11px; }
+        #settings-btn { top: max(15px, env(safe-area-inset-top)); right: max(15px, env(safe-area-inset-right)); }
+        #scrap-display { top: max(15px, env(safe-area-inset-top)); left: max(15px, env(safe-area-inset-left)); padding: 6px 10px; font-size: 12px; }
+        #buff-timer-display { font-size: 11px; padding: 2px 4px; }
         
         #tool-bar { bottom: max(10px, env(safe-area-inset-bottom)); gap: 5px; }
         .tool-slot { width: 45px; height: 45px; font-size: 9px; border-radius: 8px; }
         .tool-slot .icon svg { width: 20px; height: 20px; }
         
-        #joystick-zone { width: 110px; height: 110px; bottom: max(15px, env(safe-area-inset-bottom)); left: max(15px, env(safe-area-inset-left)); }
+        #joystick-zone { width: 110px; height: 110px; bottom: max(20px, env(safe-area-inset-bottom)); left: max(20px, env(safe-area-inset-left)); }
         #joystick-knob { width: 40px; height: 40px; top: 35px; left: 35px; }
         
-        .mobile-action-group { bottom: max(15px, env(safe-area-inset-bottom)); right: max(15px, env(safe-area-inset-right)); gap: 10px; }
+        .mobile-action-group { bottom: max(20px, env(safe-area-inset-bottom)); right: max(20px, env(safe-area-inset-right)); gap: 10px; }
         .mobile-sub-group { gap: 10px; }
         .btn-fire { width: 75px; height: 75px; }
         .btn-fire svg { width: 30px; height: 30px; }
         .btn-jump { width: 60px; height: 60px; }
         .btn-reload { width: 55px; height: 55px; }
 
-        /* [2] 팝업 모달창 모바일 압축 (잘림 방지 및 스크롤) */
-        .modal { padding: 15px 10px !important; justify-content: flex-start !important; overflow-y: auto !important; }
-        .modal h1 { font-size: 26px !important; margin-bottom: 5px !important; line-height: 1.1; }
-        .modal h2 { font-size: 13px !important; margin-bottom: 10px !important; }
+        /* [핵심] 팝업 모달창 잘림 방지 (무조건 위에서부터 스크롤되도록 고정) */
+        .modal { padding: 40px 10px !important; justify-content: flex-start !important; }
+        .modal h1 { font-size: 32px !important; margin-bottom: 5px !important; }
+        .modal h2 { font-size: 14px !important; margin-bottom: 15px !important; }
         
-        /* 언어 선택 버튼 (좌측 상단 배열 조정) */
-        #start-modal > div:first-of-type { top: 5px !important; left: max(5px, env(safe-area-inset-left)) !important; flex-direction: row !important; gap: 4px !important; }
-        #start-modal > div:first-of-type button { padding: 6px 10px !important; font-size: 10px !important; min-width: auto !important; }
+        /* 시작 화면 언어 선택 버튼 가로 압축 */
+        #start-modal > div:first-of-type { top: max(10px, env(safe-area-inset-top)) !important; left: max(10px, env(safe-area-inset-left)) !important; flex-direction: row !important; gap: 6px !important; }
+        #start-modal > div:first-of-type button { padding: 6px 12px !important; font-size: 11px !important; min-width: auto !important; }
+        
+        /* 면책 조항 모달창 축소 및 마진 확보 (잘림 완전 방지) */
+        #disclaimer-modal > div { padding: 20px !important; width: 95% !important; margin: auto 0 !important; margin-top: 30px !important; margin-bottom: 30px !important; }
+        #disc-title { font-size: 20px !important; margin-bottom: 15px !important; }
+        #disclaimer-modal p { font-size: 12px !important; margin-bottom: 10px !important; line-height: 1.5 !important; }
+        #disc-chk-text { font-size: 12px !important; }
         
         /* 시작 화면 가이드 박스 축소 */
-        .guide-box { padding: 10px !important; margin-bottom: 10px !important; max-width: 95% !important; box-shadow: none !important; border: 1px solid #444 !important; }
-        .guide-box h3 { font-size: 14px !important; margin-bottom: 5px !important; }
-        .guide-box ul { font-size: 11px !important; line-height: 1.4; }
-        #start-modal label { font-size: 11px !important; gap: 4px !important; }
-        #start-modal label input { width: 14px !important; height: 14px !important; }
+        .guide-box { padding: 15px !important; margin-bottom: 15px !important; width: 95% !important; }
+        .guide-box h3 { font-size: 14px !important; margin-bottom: 8px !important; }
+        .guide-box ul { font-size: 11px !important; line-height: 1.5; }
+        #start-modal label { font-size: 12px !important; gap: 6px !important; }
+        #start-modal label input { width: 16px !important; height: 16px !important; }
         
-        /* 공통 버튼 크기 축소 */
-        .platform-btn { padding: 8px 16px !important; font-size: 11px !important; min-width: 120px !important; border-width: 1px !important; }
-        .btn-group { gap: 8px !important; margin-bottom: 8px !important; }
+        /* 버튼 크기 축소 */
+        .platform-btn { padding: 10px 20px !important; font-size: 12px !important; min-width: 140px !important; border-width: 2px !important; }
+        .btn-group { gap: 10px !important; margin-bottom: 10px !important; }
         
-        /* 면책 조항 모달창 축소 */
-        #disclaimer-modal > div { padding: 15px !important; width: 95% !important; margin-top: 20px; margin-bottom: 20px; }
-        #disc-title { font-size: 18px !important; margin-bottom: 10px !important; }
-        #disclaimer-modal p { font-size: 11px !important; margin-bottom: 6px !important; line-height: 1.4 !important; }
-        #disc-chk-text { font-size: 11px !important; }
-        
-        /* 상점(비축고) 및 엔딩 도감 축소 */
-        #upg-title, #coll-title { font-size: 20px !important; margin-top: 10px !important; }
+        /* 상점(비축고) 및 도감 세로 여백 최적화 */
+        #upg-title, #coll-title { font-size: 24px !important; margin-top: 20px !important; }
         #upgrade-list, #collection-list { max-height: none !important; width: 95% !important; overflow-y: visible !important; }
-        .upgrade-item { padding: 8px !important; margin-bottom: 6px !important; flex-direction: column !important; align-items: flex-start !important; gap: 6px !important;}
-        .upgrade-name { font-size: 12px !important; }
-        .upgrade-desc { font-size: 10px !important; line-height: 1.3; }
-        .upgrade-buy-btn { width: 100% !important; padding: 6px !important; font-size: 11px !important; }
-        #t-btn-lucky-box { font-size: 11px !important; padding: 8px !important; margin-bottom: 10px !important; width: 95% !important; }
+        .upgrade-item { padding: 10px !important; margin-bottom: 8px !important; flex-direction: column !important; align-items: flex-start !important; gap: 8px !important;}
+        .upgrade-name { font-size: 13px !important; }
+        .upgrade-desc { font-size: 11px !important; line-height: 1.4; }
+        .upgrade-buy-btn { width: 100% !important; padding: 8px !important; font-size: 12px !important; }
+        #t-btn-lucky-box { font-size: 12px !important; padding: 10px !important; width: 95% !important; margin-bottom: 15px !important; }
         
         /* 오디오 설정창 축소 */
-        #settings-modal > div { padding: 15px !important; margin-bottom: 10px !important; width: 95% !important; margin-top: 20px; }
+        #settings-modal > div { padding: 20px !important; margin-bottom: 15px !important; width: 95% !important; margin-top: auto !important; margin-bottom: auto !important; }
     }
 
     #orientation-warning { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; flex-direction: column; justify-content: center; align-items: center; color: #fff; text-align: center; }
@@ -272,7 +288,7 @@
   </div>
 
   <div id="disclaimer-modal" class="modal" style="z-index: 100; display: flex;">
-    <div style="background: rgba(15, 15, 15, 0.95); border: 2px solid #e74c3c; padding: 30px; border-radius: 8px; max-width: 550px; text-align: left; box-shadow: 0 10px 40px rgba(231,76,60,0.4);">
+    <div style="background: rgba(15, 15, 15, 0.95); border: 2px solid #e74c3c; padding: 30px; border-radius: 8px; max-width: 550px; text-align: left; box-shadow: 0 10px 40px rgba(231,76,60,0.4); margin: auto 0;">
         <div style="margin-bottom: 20px; display: flex; justify-content: center; gap: 10px;">
            <button onclick="applyLang('ko')" class="platform-btn" style="min-width:auto; padding: 10px 20px; font-size:15px; background:#444; border-color:#222;">한국어</button>
            <button onclick="applyLang('en')" class="platform-btn" style="min-width:auto; padding: 10px 20px; font-size:15px; background:#444; border-color:#222;">English</button>
@@ -403,7 +419,7 @@
 
   <div id="settings-modal" class="modal" style="display:none; z-index:80;">
     <h1 id="set-title" style="font-size: 30px; letter-spacing: 2px;">오디오 설정</h1>
-    <div style="background: rgba(30, 30, 30, 0.9); border: 1px solid #555; border-radius: 8px; padding: 25px; width: 90%; max-width: 350px; text-align: left; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
+    <div style="background: rgba(30, 30, 30, 0.9); border: 1px solid #555; border-radius: 8px; padding: 25px; width: 90%; max-width: 350px; text-align: left; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); margin: auto 0;">
       <div style="margin-bottom: 20px;">
         <label style="color: #fff; font-size: 15px; font-weight: bold; display: flex; justify-content: space-between; margin-bottom: 8px;">
           <span id="set-bgm">배경음악 (BGM) </span><span id="bgm-val" style="color:#e67e22;">100%</span>
