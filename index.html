@@ -11,7 +11,7 @@
   
   <title>나의 벙커 (My Bunker) - Phase 16 (Telemetry & Mobile Optimized)</title>
   <style>
-    /* [수정] 글로벌 터치 잠금은 유지하되, UI 모달창에서는 풀기 위해 구조를 조정했습니다. */
+    /* 글로벌 터치 잠금은 유지하되, UI 모달창에서는 풀기 위해 구조 조정 */
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
     body, html { width: 100%; height: 100%; overflow: hidden; background-color: #000; font-family: 'Courier New', Courier, monospace; color: #fff; overscroll-behavior: none; touch-action: none; }
     
@@ -54,18 +54,16 @@
     #fade-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; pointer-events: none; opacity: 0; transition: opacity 2s; z-index: 40; }
     #toast { position: absolute; top: 110px; left: 50%; transform: translateX(-50%); background: rgba(20, 20, 20, 0.95); border: 1px solid #e74c3c; color: #fff; padding: 10px 24px; border-radius: 4px; font-size: 13px; font-family: monospace; font-weight: bold; pointer-events: none; opacity: 0; transition: opacity 0.3s; z-index: 15; text-align: center; box-shadow: 0 4px 10px rgba(231,76,60,0.2); letter-spacing: 0.5px; text-transform: uppercase; }
 
-    /* [CRITICAL FIX] 모달창 터치/스크롤 잠금 완벽 해제 및 반응형 스크롤 허용 */
+    /* [CRITICAL FIX] 모달창 터치/스크롤 잠금 해제 및 반응형 스크롤 허용 */
     .modal { 
         position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
         background: rgba(0, 0, 0, 0.95); 
         display: flex; flex-direction: column; justify-content: center; align-items: center; 
         z-index: 50; text-align: center; padding: 20px; transition: opacity 1s; backdrop-filter: blur(5px);
-        overflow-y: auto !important; /* 항상 수직 스크롤 허용 */
-        touch-action: pan-y !important; /* 모바일 드래그 스크롤 허용 (핵심) */
+        overflow-y: auto !important; 
+        touch-action: pan-y !important; 
     }
-    .modal * { 
-        touch-action: pan-y !important; /* 모달 내부 모든 요소의 터치 잠금 해제 */
-    }
+    .modal * { touch-action: pan-y !important; }
 
     .modal h1 { font-size: 50px; color: #e74c3c; margin-bottom: 10px; letter-spacing: 4px; line-height: 1.2; text-shadow: 0 4px 15px rgba(231,76,60,0.5); font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif; }
     .modal h2 { font-size: 20px; color: #bdc3c7; margin-bottom: 30px; font-weight: normal; letter-spacing: 1px; }
@@ -127,34 +125,60 @@
     /* 2배 버프 타이머 HUD 효과 */
     #buff-timer-display { font-size:16px; font-weight:bold; color:#f1c40f; display:none; background:rgba(20,20,20,0.9); padding:4px 8px; border-radius:4px; border:1px solid #f39c12; margin-left:10px; font-family:monospace; box-shadow: 0 0 10px rgba(241,196,15,0.4); }
 
-    /* [CRITICAL FIX] Z플립/폴드 모바일 가로(Landscape) 화면 팝업 잘림 및 UI 완벽 대응 */
+    /* [CRITICAL FIX] Z플립/폴드 및 일반 모바일 HUD 초압축 시야 확보 */
     @media screen and (max-height: 650px), screen and (max-width: 850px) {
-        /* 인게임 조작 및 HUD 안전영역 배치 */
-        #hud { top: max(15px, env(safe-area-inset-top)); left: max(10px, env(safe-area-inset-left)); right: max(10px, env(safe-area-inset-right)); }
-        .hud-card { padding: 6px 10px; font-size: 11px; }
-        .hp-bar-bg { width: 100px; height: 6px; }
-        #time-display { font-size: 14px !important; }
-        #compass-container { top: max(5px, env(safe-area-inset-top)); padding: 4px 15px; font-size: 11px; }
-        #set-btn-text { font-size: 11px; }
-        #settings-btn { top: max(15px, env(safe-area-inset-top)); right: max(15px, env(safe-area-inset-right)); }
-        #scrap-display { top: max(15px, env(safe-area-inset-top)); left: max(15px, env(safe-area-inset-left)); padding: 6px 10px; font-size: 12px; }
-        #buff-timer-display { font-size: 11px; padding: 2px 4px; }
         
-        #tool-bar { bottom: max(10px, env(safe-area-inset-bottom)); gap: 5px; }
-        .tool-slot { width: 45px; height: 45px; font-size: 9px; border-radius: 8px; }
-        .tool-slot .icon svg { width: 20px; height: 20px; }
-        
-        #joystick-zone { width: 110px; height: 110px; bottom: max(20px, env(safe-area-inset-bottom)); left: max(20px, env(safe-area-inset-left)); }
-        #joystick-knob { width: 40px; height: 40px; top: 35px; left: 35px; }
-        
-        .mobile-action-group { bottom: max(20px, env(safe-area-inset-bottom)); right: max(20px, env(safe-area-inset-right)); gap: 10px; }
-        .mobile-sub-group { gap: 10px; }
-        .btn-fire { width: 75px; height: 75px; }
-        .btn-fire svg { width: 30px; height: 30px; }
-        .btn-jump { width: 60px; height: 60px; }
-        .btn-reload { width: 55px; height: 55px; }
+        /* 인게임 조작 및 HUD 안전영역 배치 - 극단적 압축으로 3D 시야 확보 */
+        #scrap-display { top: max(5px, env(safe-area-inset-top)); left: max(5px, env(safe-area-inset-left)); padding: 4px 6px !important; font-size: 10px !important; }
+        #scrap-display svg { width: 14px; height: 14px; }
+        #buff-timer-display { font-size: 9px !important; padding: 2px 4px !important; margin-left: 4px !important; }
 
-        /* [핵심] 팝업 모달창 잘림 방지 (무조건 위에서부터 스크롤되도록 고정) */
+        #settings-btn { top: max(5px, env(safe-area-inset-top)) !important; right: max(5px, env(safe-area-inset-right)) !important; padding: 4px 6px !important; }
+        #settings-btn svg { width: 14px; height: 14px; }
+        #set-btn-text { font-size: 9px !important; }
+
+        #compass-container { top: max(5px, env(safe-area-inset-top)) !important; padding: 3px 12px !important; font-size: 9px !important; }
+
+        #hud { top: max(35px, env(safe-area-inset-top) + 25px) !important; left: max(5px, env(safe-area-inset-left)) !important; right: max(5px, env(safe-area-inset-right)) !important; gap: 4px; }
+        .hud-card { padding: 4px 6px !important; font-size: 9px !important; border-radius: 6px !important; }
+        .hp-bar-bg { width: 70px !important; height: 4px !important; margin-top: 3px !important; }
+        
+        #hud-hp > div:first-child { font-size: 9px !important; gap: 3px !important; }
+        #hud-hp svg { width: 10px !important; height: 10px !important; }
+        
+        #time-display { font-size: 12px !important; }
+        #status-display { font-size: 8px !important; margin-top: 2px !important; }
+        #depth-display { font-size: 8px !important; margin-top: 2px !important; }
+        
+        #hud-ammo > div:first-child { font-size: 9px !important; gap: 3px !important; }
+        #hud-ammo > div:first-child svg { width: 10px !important; height: 10px !important; }
+        #hud-ammo > div:last-child { font-size: 13px !important; margin-top: 2px !important; }
+        #ammo-reserve { font-size: 10px !important; }
+
+        #toast { top: max(75px, env(safe-area-inset-top) + 65px) !important; font-size: 10px !important; padding: 4px 12px !important; }
+
+        #boss-hud { top: max(35px, env(safe-area-inset-top) + 25px) !important; }
+        #boss-name { font-size: 12px !important; margin-bottom: 4px !important; }
+        #boss-hp-bg { height: 10px !important; border-width: 1px !important; border-radius: 4px !important; }
+        
+        /* 무기 슬롯도 조금 더 압축하여 시야 확보 */
+        #tool-bar { bottom: max(5px, env(safe-area-inset-bottom)) !important; gap: 4px !important; }
+        .tool-slot { width: 40px !important; height: 40px !important; font-size: 8px !important; border-radius: 6px !important; }
+        .tool-slot .icon svg { width: 18px !important; height: 18px !important; }
+        .tool-slot.active { transform: translateY(-5px) scale(1.05) !important; }
+
+        /* 조이스틱 및 액션 버튼 모바일 최적화 (이전 롤백본과 동일하게 유지) */
+        #joystick-zone { width: 110px !important; height: 110px !important; bottom: max(20px, env(safe-area-inset-bottom)) !important; left: max(20px, env(safe-area-inset-left)) !important; }
+        #joystick-knob { width: 40px !important; height: 40px !important; top: 35px !important; left: 35px !important; }
+        
+        .mobile-action-group { bottom: max(20px, env(safe-area-inset-bottom)) !important; right: max(20px, env(safe-area-inset-right)) !important; gap: 10px !important; }
+        .mobile-sub-group { gap: 10px !important; }
+        .btn-fire { width: 75px !important; height: 75px !important; }
+        .btn-fire svg { width: 30px !important; height: 30px !important; }
+        .btn-jump { width: 60px !important; height: 60px !important; }
+        .btn-reload { width: 55px !important; height: 55px !important; }
+
+        /* 모달창 잘림 방지 (무조건 위에서부터 스크롤되도록 고정) */
         .modal { padding: 40px 10px !important; justify-content: flex-start !important; }
         .modal h1 { font-size: 32px !important; margin-bottom: 5px !important; }
         .modal h2 { font-size: 14px !important; margin-bottom: 15px !important; }
@@ -163,7 +187,7 @@
         #start-modal > div:first-of-type { top: max(10px, env(safe-area-inset-top)) !important; left: max(10px, env(safe-area-inset-left)) !important; flex-direction: row !important; gap: 6px !important; }
         #start-modal > div:first-of-type button { padding: 6px 12px !important; font-size: 11px !important; min-width: auto !important; }
         
-        /* 면책 조항 모달창 축소 및 마진 확보 (잘림 완전 방지) */
+        /* 면책 조항 모달창 축소 및 마진 확보 */
         #disclaimer-modal > div { padding: 20px !important; width: 95% !important; margin: auto 0 !important; margin-top: 30px !important; margin-bottom: 30px !important; }
         #disc-title { font-size: 20px !important; margin-bottom: 15px !important; }
         #disclaimer-modal p { font-size: 12px !important; margin-bottom: 10px !important; line-height: 1.5 !important; }
@@ -616,20 +640,20 @@
         scrapEl.parentElement.classList.remove('scrap-pop'); void scrapEl.parentElement.offsetWidth; scrapEl.parentElement.classList.add('scrap-pop');
     }
 
-    // --- [14차 광고 시뮬레이터 브릿지 (프리즈 버그 완벽 수정)] ---
+    // --- [14차 광고 시뮬레이터 브릿지] ---
     function showRewardAd(onSuccess, onCancel) {
         const adModal = document.getElementById('ad-modal');
         const adTimerEl = document.getElementById('ad-timer');
         adModal.style.display = 'flex';
         let timeLeft = 3; adTimerEl.innerText = timeLeft;
         let pState = gameState;
-        if(pState !== 'START' && pState !== 'ENDING') gameState = 'AD_PLAYING'; // 게임 일시정지
+        if(pState !== 'START' && pState !== 'ENDING') gameState = 'AD_PLAYING';
 
         const interval = setInterval(() => {
             timeLeft--; adTimerEl.innerText = timeLeft;
             if(timeLeft <= 0) {
                 clearInterval(interval); adModal.style.display = 'none';
-                if(gameState === 'AD_PLAYING') gameState = pState; // 원상 복구 버그 해결
+                if(gameState === 'AD_PLAYING') gameState = pState;
                 if(onSuccess) onSuccess();
             }
         }, 1000);
@@ -889,7 +913,6 @@
     function updatePlayer() {
       if (!isGameStarted || gameState === 'START' || gameState === 'ENDING' || gameState === 'TRANSITION' || gameState === 'AD_PLAYING' || gameState === 'REVIVE_WAIT') return;
       
-      // [Phase 16] Telemetry: Update Max Depth
       let currentDepth = Math.max(0, Math.floor((1.0 - player.pos.y) * 1.5));
       if (currentDepth > runMaxDepth) runMaxDepth = currentDepth;
       
