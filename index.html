@@ -226,6 +226,12 @@
 </head>
 <body>
 
+  <!-- [Phase 16 Splash Screen] -->
+  <div id="splash-screen" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:99999; display:flex; flex-direction:column; justify-content:center; align-items:center; transition:opacity 0.8s; pointer-events:none;">
+    <h1 style="color:#e74c3c; font-size:48px; letter-spacing:8px; font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif; text-shadow:0 0 20px rgba(231,76,60,0.5); margin:0;">MY BUNKER</h1>
+    <p style="color:#7f8c8d; font-size:14px; font-family:monospace; margin-top:15px; letter-spacing:2px;">LOADING...</p>
+  </div>
+
   <div id="orientation-warning">
     <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#e67e22" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:20px; animation: rotatePhone 2s infinite;"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
     <h2>원활한 플레이를 위해<br>기기를 가로(Landscape)로<br>회전해 주세요.</h2>
@@ -258,7 +264,7 @@
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f39c12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
         <span id="scrap-val">0</span>
     </div>
-    <span id="buff-timer-display">🔥 2X 03:00</span>
+    <span id="buff-timer-display">[BUFF] 2X 03:00</span>
   </div>
 
   <div id="hud">
@@ -311,14 +317,14 @@
       <p id="t-ad-desc" style="color:#aaa; font-size:14px;">시청 후 보상이 지급됩니다...</p>
   </div>
 
-  <div id="disclaimer-modal" class="modal" style="z-index: 100; display: flex;">
+  <div id="disclaimer-modal" class="modal" style="z-index: 100; display: none;">
     <div style="background: rgba(15, 15, 15, 0.95); border: 2px solid #e74c3c; padding: 30px; border-radius: 8px; max-width: 550px; text-align: left; box-shadow: 0 10px 40px rgba(231,76,60,0.4); margin: auto 0;">
         <div style="margin-bottom: 20px; display: flex; justify-content: center; gap: 10px;">
            <button onclick="applyLang('ko')" class="platform-btn" style="min-width:auto; padding: 10px 20px; font-size:15px; background:#444; border-color:#222;">한국어</button>
            <button onclick="applyLang('en')" class="platform-btn" style="min-width:auto; padding: 10px 20px; font-size:15px; background:#444; border-color:#222;">English</button>
            <button onclick="applyLang('ja')" class="platform-btn" style="min-width:auto; padding: 10px 20px; font-size:15px; background:#444; border-color:#222;">日本語</button>
         </div>
-        <h1 id="disc-title" style="font-size: 26px; color: #e74c3c; text-align: center; margin-bottom: 20px; font-family: 'Courier New', sans-serif; letter-spacing: 1px;">⚠️ 역사적 고지 및 면책 조항</h1>
+        <h1 id="disc-title" style="font-size: 26px; color: #e74c3c; text-align: center; margin-bottom: 20px; font-family: 'Courier New', sans-serif; letter-spacing: 1px;">[경고] 역사적 고지 및 면책 조항</h1>
         <div style="color: #ccc; font-size: 14px; line-height: 1.7; margin-bottom: 25px; font-family: sans-serif;">
             <p id="disc-p1" style="margin-bottom: 12px;">본 게임 <b>『나의 벙커(My Bunker)』</b>는 1945년 제2차 세계대전 말기를 모티브로 한 가상의 생존 시뮬레이션 게임입니다.</p>
             <p id="disc-p2" style="margin-bottom: 12px;">본 작품은 순수한 오락적 목적의 픽션이며, <b>파시즘, 나치즘, 전체주의를 포함한 어떠한 형태의 전쟁 범죄, 인권 침해, 특정 이념을 결코 옹호하거나 미화하지 않습니다.</b></p>
@@ -358,11 +364,11 @@
       <div style="margin-top:15px; padding-top:15px; border-top:1px dashed #555; text-align:center;">
           <label style="color:#f1c40f; font-size:14px; cursor:pointer; font-weight:bold; display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom: 8px;">
               <input type="checkbox" id="chk-airdrop" style="width:18px; height:18px; accent-color:#f39c12;">
-              <span id="t-airdrop-label">📦 공중 보급 지원 (AD 1회: 판저파우스트+탄약2배)</span>
+              <span id="t-airdrop-label">[AD] 공중 보급 지원 (AD 1회: 판저파우스트+탄약2배)</span>
           </label>
           <label style="color:#f1c40f; font-size:14px; cursor:pointer; font-weight:bold; display:flex; align-items:center; justify-content:center; gap:8px;">
               <input type="checkbox" id="chk-2xscrap" style="width:18px; height:18px; accent-color:#f39c12;">
-              <span id="t-2xscrap-label">💰 스크랩 2배 버프 (AD 1회: 이번 판 내내 획득량 2배)</span>
+              <span id="t-2xscrap-label">[AD] 스크랩 2배 버프 (AD 1회: 이번 판 내내 획득량 2배)</span>
           </label>
       </div>
     </div>
@@ -385,8 +391,8 @@
     </div>
     
     <div class="btn-group" style="margin-top: 15px;">
-        <button class="platform-btn" onclick="showCollection()" style="background:#e67e22; border-color:#d35400;"><span id="t-btn-coll">🏆 엔딩 도감</span></button>
-        <button class="platform-btn upgrade-btn" onclick="openUpgrade()"><span id="t-btn-upg">🛠️ 군수 비축고</span></button>
+        <button class="platform-btn" onclick="showCollection()" style="background:#e67e22; border-color:#d35400;"><span id="t-btn-coll">[RECORD] 엔딩 도감</span></button>
+        <button class="platform-btn upgrade-btn" onclick="openUpgrade()"><span id="t-btn-upg">[STORE] 군수 비축고</span></button>
     </div>
   </div>
 
@@ -396,7 +402,7 @@
     
     <!-- 럭키 박스 버튼 (진행도 표시 추가) -->
     <button id="t-btn-lucky-box" class="platform-btn" onclick="openLuckyBox()" style="background:#8e44ad; border-color:#9b59b6; margin-bottom:15px; font-size:12px; padding:10px 15px;">
-        🎁 일일 군수품 럭키 박스 (오늘 0/5회)
+        [AD] 일일 군수품 럭키 박스 (오늘 0/5회)
     </button>
 
     <div id="upgrade-list" style="width: 90%; max-width: 450px; text-align: left; margin-bottom: 20px; overflow-y:auto; max-height: 45vh; padding-right:5px;">
@@ -407,11 +413,11 @@
 
   <div id="collection-modal" class="modal" style="display:none; z-index:70;">
     <h1 id="coll-title" style="font-size: 30px;">엔딩 도감</h1>
-    <h2 id="collection-count">0/6 달성</h2>
+    <h2 id="collection-count">0/6</h2>
     <div id="collection-list" style="text-align:left; width: 90%; max-width: 400px; max-height: 50vh; overflow-y:auto; padding: 10px; margin-bottom: 20px;"></div>
     
     <div id="super-hard-container" style="display:none; width: 100%; text-align: center; margin-bottom: 15px;">
-        <div id="sh-unl" style="color: #ff0000; font-weight: bold; font-size: 18px; margin-bottom: 10px; animation: heartbeatAnim 1s infinite;">🔥 슈퍼 하드 무한 모드 잠금 해제! 🔥</div>
+        <div id="sh-unl" style="color: #ff0000; font-weight: bold; font-size: 18px; margin-bottom: 10px; animation: heartbeatAnim 1s infinite;">[SYSTEM] 슈퍼 하드 무한 모드 잠금 해제!</div>
         <div class="btn-group">
             <button id="sh-pc" class="platform-btn hard-btn" style="min-width: 120px;" onclick="startGame('PC', true, true)">PC 시작</button>
             <button id="sh-mob" class="platform-btn hard-btn" style="min-width: 120px;" onclick="startGame('MOBILE', true, true)">모바일 시작</button>
@@ -428,9 +434,9 @@
     
     <!-- [Phase 16: Telemetry Data Box] -->
     <div id="telemetry-box" style="margin-top: 15px; padding: 12px; background: rgba(0,0,0,0.8); border: 1px dashed #7f8c8d; border-radius: 5px; font-size: 14px; color: #bdc3c7; text-align: left; width: 100%; max-width: 320px; display: none;">
-        <div style="color: #f39c12; font-weight: bold; margin-bottom: 8px; text-align: center;">📊 테스트 데이터 (스크린샷용)</div>
-        <div style="margin-bottom: 4px;">💀 처치한 적: <span id="tel-kills" style="color: #e74c3c; font-weight:bold;">0</span>명</div>
-        <div>⛏️ 최대 도달 깊이: <span id="tel-depth" style="color: #3498db; font-weight:bold;">0</span>m</div>
+        <div style="color: #f39c12; font-weight: bold; margin-bottom: 8px; text-align: center;">[DATA] 테스트 데이터 (스크린샷용)</div>
+        <div style="margin-bottom: 4px;">KILLS: <span id="tel-kills" style="color: #e74c3c; font-weight:bold;">0</span></div>
+        <div>MAX DEPTH: <span id="tel-depth" style="color: #3498db; font-weight:bold;">0</span>m</div>
     </div>
 
     <button id="ending-retry-btn" class="platform-btn" onclick="location.reload()" style="background:#2c3e50; border-color:#34495e; margin-top: 20px;">다시 도전하기</button>
@@ -504,10 +510,10 @@
         } catch(e) { return defaultVal; }
     }
 
-    /* 3개국어 번역 데이터 (i18n) */
+    /* 3개국어 번역 데이터 (i18n) - 이모티콘 100% 제거 완료 */
     const i18n = {
        ko: {
-          discTitle: "⚠️ 역사적 고지 및 면책 조항",
+          discTitle: "[경고] 역사적 고지 및 면책 조항",
           disc1: "본 게임 『나의 벙커(My Bunker)』는 1945년 제2차 세계대전 말기를 모티브로 한 가상의 생존 시뮬레이션 게임입니다.",
           disc2: "본 작품은 순수한 오락적 목적의 픽션이며, 파시즘, 나치즘, 전체주의를 포함한 어떠한 형태의 전쟁 범죄, 인권 침해, 특정 이념을 결코 옹호하거나 미화하지 않습니다.",
           disc3: "게임에 등장하는 모든 세력, 인물, 복장 등은 역사적 모티브를 둔 가상의 장치일 뿐이며, 개발진은 전쟁의 비극을 엄중히 인식하고 평화와 인류 보편의 가치를 지향합니다.",
@@ -520,18 +526,19 @@
           guide3: "<b>특수 적군:</b> 흉갑을 입은 적은 <b>헤드샷에만 반응</b>하며 처치 시 [판저파우스트] 드랍.",
           guide4: "<b>하드 모드:</b> 적군이 몰려오나 은폐 시 체력이 대폭(+20) 자동 회복됩니다.",
           btnPcNorm: "PC Normal", btnMobNorm: "Mobile Normal", btnPcHard: "PC HARD", btnMobHard: "Mobile HARD",
-          btnColl: "🏆 엔딩 도감", btnUpg: "🛠️ 군수 비축고",
+          btnColl: "[RECORD] 엔딩 도감", btnUpg: "[STORE] 군수 비축고",
           upgTitle: "지하 군수 비축고", upgScrap: "보유 스크랩: ", upgClose: "닫기",
-          collTitle: "엔딩 도감", collClose: "닫기", shUnl: "🔥 슈퍼 하드 무한 모드 잠금 해제! 🔥", shPc: "PC 시작", shMob: "모바일 시작",
+          collTitle: "엔딩 도감", collClose: "닫기", shUnl: "[SYSTEM] 슈퍼 하드 무한 모드 잠금 해제!", shPc: "PC 시작", shMob: "모바일 시작",
           setBtn: "설정 (ESC)", setTitle: "오디오 설정", setBgm: "배경음악 (BGM) ", setSfx: "효과음 (SFX) ", setApply: "적용 및 닫기", setQuit: "메인 메뉴로 나가기",
           endingRetry: "다시 도전하기",
-          airdropLabel: "📦 공중 보급 지원 (AD 1회: 판저파우스트+탄약2배)",
-          btn2xScrapLabel: "💰 스크랩 2배 버프 (AD 1회: 이번 판 내내 획득량 2배)",
-          luckyBoxBtn: "🎁 일일 군수품 럭키 박스",
-          adDesc: "시청 후 보상이 지급됩니다..."
+          airdropLabel: "[AD] 공중 보급 지원 (AD 1회: 판저파우스트+탄약2배)",
+          btn2xScrapLabel: "[AD] 스크랩 2배 버프 (AD 1회: 이번 판 내내 획득량 2배)",
+          luckyBoxBtn: "[AD] 일일 군수품 럭키 박스",
+          adDesc: "시청 후 보상이 지급됩니다...",
+          rankTitle: "[RANKING] 스피드런 & 생존 기록", rankVic: "진 엔딩 최단 클리어", rankArg: "아르헨티나 도주 최단", rankAto: "원자로 생존 최단", rankUbo: "U-보트 탈출 최단", rankSH: "[슈퍼 하드] 최장 생존", hidden: "??? (미해금)"
        },
        en: {
-          discTitle: "⚠️ Historical Disclaimer",
+          discTitle: "[WARNING] Historical Disclaimer",
           disc1: "This game 'My Bunker' is a fictional survival simulation based on the end of WWII in 1945.",
           disc2: "This is a work of fiction purely for entertainment and does not endorse or glorify fascism, Nazism, totalitarianism, war crimes, or human rights violations.",
           disc3: "All factions, characters, and outfits are fictional devices inspired by history. The developers strictly recognize the tragedy of war and aim for universal peace.",
@@ -544,18 +551,19 @@
           guide3: "<b>Special Enemy:</b> Armored enemies only take <b>Headshots</b> and drop [Panzerfaust].",
           guide4: "<b>Hard Mode:</b> Hordes of enemies, but HP regenerates (+20) when hiding.",
           btnPcNorm: "PC Normal", btnMobNorm: "Mobile Normal", btnPcHard: "PC HARD", btnMobHard: "Mobile HARD",
-          btnColl: "🏆 Endings", btnUpg: "🛠️ Bunker Armory",
+          btnColl: "[RECORD] Endings", btnUpg: "[STORE] Bunker Armory",
           upgTitle: "Bunker Armory", upgScrap: "Scrap: ", upgClose: "Close",
-          collTitle: "Ending Collection", collClose: "Close", shUnl: "🔥 Super Hard Endless Mode Unlocked! 🔥", shPc: "Start PC", shMob: "Start Mobile",
+          collTitle: "Ending Collection", collClose: "Close", shUnl: "[SYSTEM] Super Hard Endless Mode Unlocked!", shPc: "Start PC", shMob: "Start Mobile",
           setBtn: "Settings (ESC)", setTitle: "Audio Settings", setBgm: "Music (BGM) ", setSfx: "Sound (SFX) ", setApply: "Apply & Close", setQuit: "Quit to Menu",
           endingRetry: "Retry",
-          airdropLabel: "📦 Starter Airdrop (Watch AD: Panzerfaust & 2x Ammo)",
-          btn2xScrapLabel: "💰 2x Scrap Buff (Watch AD: 2x Scrap this run)",
-          luckyBoxBtn: "🎁 Daily Lucky Box",
-          adDesc: "Reward granted after watching..."
+          airdropLabel: "[AD] Starter Airdrop (Watch AD: Panzerfaust & 2x Ammo)",
+          btn2xScrapLabel: "[AD] 2x Scrap Buff (Watch AD: 2x Scrap this run)",
+          luckyBoxBtn: "[AD] Daily Lucky Box",
+          adDesc: "Reward granted after watching...",
+          rankTitle: "[RANKING] Speedrun & Survival Records", rankVic: "True Ending Fastest", rankArg: "Escape to Argentina Fastest", rankAto: "Atomic Survival Fastest", rankUbo: "U-Boat Escape Fastest", rankSH: "[SUPER HARD] Longest Survival", hidden: "??? (Locked)"
        },
        ja: {
-          discTitle: "⚠️ 歴史的免責事項",
+          discTitle: "[警告] 歴史的免責事項",
           disc1: "本作『My Bunker』は1945年の第二次世界大戦末期をモチーフにした架空のサバイバルゲームです。",
           disc2: "本作は純粋な娯楽目的のフィクションであり、ファシズム、ナチズム、全体主義、戦争犯罪等をいかなる形でも擁護・美化するものではありません。",
           disc3: "登場する勢力や人物は架空のものです。開発陣は戦争の悲劇を重く受け止め、平和を指向しています。",
@@ -568,15 +576,16 @@
           guide3: "<b>特殊な敵:</b> 装甲兵は<b>ヘッドショット</b>のみ有効。倒すと[パンツァーファウスト]をドロップ。",
           guide4: "<b>ハードモード:</b> 敵の大群。しかし隠れるとHPが大幅(+20)回復。",
           btnPcNorm: "PC Normal", btnMobNorm: "Mobile Normal", btnPcHard: "PC HARD", btnMobHard: "Mobile HARD",
-          btnColl: "🏆 エンディング図鑑", btnUpg: "🛠️ 地下武器庫",
+          btnColl: "[RECORD] エンディング図鑑", btnUpg: "[STORE] 地下武器庫",
           upgTitle: "地下武器庫", upgScrap: "スクラップ: ", upgClose: "閉じる",
-          collTitle: "エンディング図鑑", collClose: "閉じる", shUnl: "🔥 スーパーハード無限モード 解放！ 🔥", shPc: "PC スタート", shMob: "モバイル スタート",
+          collTitle: "エンディング図鑑", collClose: "閉じる", shUnl: "[SYSTEM] スーパーハード無限モード 解放！", shPc: "PC スタート", shMob: "モバイル スタート",
           setBtn: "設定 (ESC)", setTitle: "オーディオ設定", setBgm: "音楽 (BGM) ", setSfx: "効果音 (SFX) ", setApply: "適用して閉じる", setQuit: "メインメニューへ",
           endingRetry: "再挑戦",
-          airdropLabel: "📦 空中投下支援 (AD視聴: パンツァーファウスト+弾薬2倍)",
-          btn2xScrapLabel: "💰 スクラップ2倍バフ (AD視聴: 今回のプレイ中2倍)",
-          luckyBoxBtn: "🎁 デイリーラッキーボックス",
-          adDesc: "視聴後に報酬が付与されます..."
+          airdropLabel: "[AD] 空中投下支援 (AD視聴: パンツァーファウスト+弾薬2倍)",
+          btn2xScrapLabel: "[AD] スクラップ2倍バフ (AD視聴: 今回のプレイ中2倍)",
+          luckyBoxBtn: "[AD] デイリーラッキーボックス",
+          adDesc: "視聴後に報酬が付与されます...",
+          rankTitle: "[RANKING] スピードラン＆生存記録", rankVic: "真エンディング 最速", rankArg: "アルゼンチン逃亡 最速", rankAto: "原子炉生存 最速", rankUbo: "Uボート脱出 最速", rankSH: "[スーパーハード] 最長生存", hidden: "??? (未解禁)"
        }
     };
 
@@ -605,9 +614,24 @@
         safeSetItem('myBunkerDisclaimerAgreed', true); document.getElementById('disclaimer-modal').style.display = 'none'; document.getElementById('start-modal').style.display = 'flex';
     }
 
+    // [Phase 16 Splash Screen 로직]
     window.addEventListener('load', () => {
         applyLang(currentLang);
-        if(safeGetItem('myBunkerDisclaimerAgreed', false)) { document.getElementById('disclaimer-modal').style.display = 'none'; document.getElementById('start-modal').style.display = 'flex'; }
+        setTimeout(() => {
+            const splash = document.getElementById('splash-screen');
+            if (splash) {
+                splash.style.opacity = '0';
+                setTimeout(() => {
+                    splash.style.display = 'none';
+                    if(safeGetItem('myBunkerDisclaimerAgreed', false)) { 
+                        document.getElementById('disclaimer-modal').style.display = 'none'; 
+                        document.getElementById('start-modal').style.display = 'flex'; 
+                    } else {
+                        document.getElementById('disclaimer-modal').style.display = 'flex';
+                    }
+                }, 500);
+            }
+        }, 1500);
     });
 
     let globalBgmVolume = parseFloat(localStorage.getItem('myBunkerBgmVol') ?? '1.0');
@@ -936,7 +960,7 @@
       }
     }
 
-    function triggerAtomicWave() { if (gameState === 'ATOMIC_WAVE') return; gameState = 'ATOMIC_WAVE'; atomicWaveTimer = realTimeSeconds + 60; showToast("☢️ 비밀 원자로 가동! 60초간 극비 시설을 사수하십시오!"); document.getElementById('vignette').style.background = 'radial-gradient(circle, transparent 40%, rgba(0, 255, 170, 0.5) 120%)'; ambientLight.color.setHex(0x00ffaa); ambientLight.intensity = 1.0; }
+    function triggerAtomicWave() { if (gameState === 'ATOMIC_WAVE') return; gameState = 'ATOMIC_WAVE'; atomicWaveTimer = realTimeSeconds + 60; showToast("[DANGER] 비밀 원자로 가동! 60초간 극비 시설을 사수하십시오!"); document.getElementById('vignette').style.background = 'radial-gradient(circle, transparent 40%, rgba(0, 255, 170, 0.5) 120%)'; ambientLight.color.setHex(0x00ffaa); ambientLight.intensity = 1.0; }
     let hitMarkerTimeout; function showHitMarker(isCritical = false) { const hm = document.getElementById('hit-marker'); if (!hm) return; if (isCritical) hm.classList.add('hit-critical'); else hm.classList.remove('hit-critical'); hm.style.opacity = '1'; hm.style.transform = 'translate(-50%, -50%) scale(1.3)'; if (hitMarkerTimeout) clearTimeout(hitMarkerTimeout); hitMarkerTimeout = setTimeout(() => { hm.style.opacity = '0'; hm.style.transform = 'translate(-50%, -50%) scale(1.0)'; }, 150); }
 
     let isPunching = false;
@@ -948,7 +972,7 @@
         const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(0, 0), camera); const hitEnemies = ray.intersectObjects(enemyGroup.children, true); const hitBoss = (gameState === 'BOSS' || gameState === 'SUPER_HARD') && stalin ? ray.intersectObjects(stalin.group.children, true) : []; const allHits = [...hitEnemies, ...hitBoss].sort((a,b) => a.distance - b.distance);
         if (allHits.length > 0) { const hitEnemySet = new Set(); for (let i = 0; i < allHits.length; i++) { if (hitWall && hitWall.distance < allHits[i].distance) break; if (i === 0) finalHitPos = allHits[i].point; const hitObj = allHits[i].object;
                 if (hitObj.userData.isBoss) { let dmg = 35; if (hitObj.userData.isHead) { dmg = 100; showToast("[CRITICAL] 헤드샷 관통!"); showHitMarker(true); } else { showHitMarker(false); } if (stalin.actionState === 'WHIRLWIND') { dmg *= 0.5; showToast("대회전! 데미지 반감!"); } stalin.hp -= dmg; flashEnemyColor(stalin.group.children); continue; }
-                const en = enemies.find(e => e.group === hitObj.userData.parent); if (en && !hitEnemySet.has(en)) { hitEnemySet.add(en); let isHead = hitObj.userData.isHead; if (en.isSoviet) { if (hitObj.userData.isArmor || !isHead) { showToast("[ARMOR] 도탄 됨! (피해 감소)"); en.hp -= 5; showHitMarker(false); } else { showToast("[HEADSHOT] 치명타 및 중화기 획득!"); en.hp -= 150; showHitMarker(true); player.ammoClip = Math.min(player.ammoClip + 3, 999); updateHUD(); if (!hasPanzerfaust) { hasPanzerfaust = true; panzerGroup.visible = (player.activeSlot === 4); document.getElementById('slot-4').style.display = 'flex'; showToast("🚀 판저파우스트 획득! (4번 슬롯)"); } } } else { let dmg = 35; if (isHead) { dmg = 100; showToast("[CRITICAL] 헤드샷!"); showHitMarker(true); } else { showHitMarker(false); } en.hp -= dmg; } flashEnemyColor(en.group.children); if (en.hp <= 0) { enemyGroup.remove(en.group); const idx = enemies.indexOf(en); if (idx > -1) enemies.splice(idx, 1); runKillCount++; if(Math.random() < 0.35) addScrap(en.isSoviet ? 3 : 1); if(Math.random() < 0.20) { player.ammoReserve += 2; showToast("[AMMO] 예비 탄약 +2 획득"); updateHUD(); } } } } } createBulletTracer(pMuzzle.getWorldPosition(new THREE.Vector3()), finalHitPos);
+                const en = enemies.find(e => e.group === hitObj.userData.parent); if (en && !hitEnemySet.has(en)) { hitEnemySet.add(en); let isHead = hitObj.userData.isHead; if (en.isSoviet) { if (hitObj.userData.isArmor || !isHead) { showToast("[ARMOR] 도탄 됨! (피해 감소)"); en.hp -= 5; showHitMarker(false); } else { showToast("[HEADSHOT] 치명타 및 중화기 획득!"); en.hp -= 150; showHitMarker(true); player.ammoClip = Math.min(player.ammoClip + 3, 999); updateHUD(); if (!hasPanzerfaust) { hasPanzerfaust = true; panzerGroup.visible = (player.activeSlot === 4); document.getElementById('slot-4').style.display = 'flex'; showToast("[WEAPON] 판저파우스트 획득! (4번 슬롯)"); } } } else { let dmg = 35; if (isHead) { dmg = 100; showToast("[CRITICAL] 헤드샷!"); showHitMarker(true); } else { showHitMarker(false); } en.hp -= dmg; } flashEnemyColor(en.group.children); if (en.hp <= 0) { enemyGroup.remove(en.group); const idx = enemies.indexOf(en); if (idx > -1) enemies.splice(idx, 1); runKillCount++; if(Math.random() < 0.35) addScrap(en.isSoviet ? 3 : 1); if(Math.random() < 0.20) { player.ammoReserve += 2; showToast("[AMMO] 예비 탄약 +2 획득"); updateHUD(); } } } } } createBulletTracer(pMuzzle.getWorldPosition(new THREE.Vector3()), finalHitPos);
       } else if (player.activeSlot === 2) { 
         if (isPunching) return; isPunching = true; sfx.punch(); const punchSpeed = 0.5 - (upgrades.fist * 0.1); const currentPunchRange = PUNCH_RANGE + (upgrades.fist * 0.8);
         fistL.position.z = -0.5; fistL.position.y = -0.1; fistL.rotation.x = -0.5; fistL.rotation.z = 0.3; setTimeout(() => { fistL.position.z = -0.25; fistL.position.y = -0.18; fistL.rotation.x = 0; fistL.rotation.z = 0; }, punchSpeed * 100); setTimeout(() => { fistR.position.z = -0.5; fistR.position.y = -0.1; fistR.rotation.x = -0.5; fistR.rotation.z = -0.3; setTimeout(() => { fistR.position.z = -0.25; fistR.position.y = -0.18; fistR.rotation.x = 0; fistR.rotation.z = 0; isPunching = false; }, punchSpeed * 150); }, punchSpeed * 150);
@@ -1059,7 +1083,7 @@
       initAudio(); document.getElementById('start-modal').style.display = 'none'; document.getElementById('collection-modal').style.display = 'none'; document.getElementById('upgrade-modal').style.display = 'none';
       if(audioCtx) nextBeatTime = audioCtx.currentTime + 0.1;
 
-      if(isSuperHard) { MAX_ENEMIES = 150; showToast("🔥 [SYSTEM] 슈퍼 하드 무한 모드 시작..."); } else if(isHardMode) { MAX_ENEMIES = 100; showToast("[SYSTEM] 지옥 난이도 활성화."); document.getElementById('gas-hint')?.style.setProperty('display', 'block'); } else { showToast("[SYSTEM] 일반 난이도 시작."); }
+      if(isSuperHard) { MAX_ENEMIES = 150; showToast("[SYSTEM] 슈퍼 하드 무한 모드 시작..."); } else if(isHardMode) { MAX_ENEMIES = 100; showToast("[SYSTEM] 지옥 난이도 활성화."); document.getElementById('gas-hint')?.style.setProperty('display', 'block'); } else { showToast("[SYSTEM] 일반 난이도 시작."); }
       
       player.maxHp = 100 + (upgrades.hp * 20); player.hp = player.maxHp; player.digPower = 1; player.baseSpeed = 0.11 + (upgrades.speed * 0.005); player.speed = player.baseSpeed; player.maxClip = 6 + (upgrades.ammo * 3);
       if (isSuperHard) { player.ammoClip = 999; player.ammoReserve = 9999; } else if (isHardMode) { player.ammoClip = player.maxClip; player.ammoReserve = 999; } else { player.ammoClip = player.maxClip; player.ammoReserve = player.maxClip * 4; }
@@ -1073,11 +1097,11 @@
       if (useAirdrop && !isSuperHard) {
           hasPanzerfaust = true; document.getElementById('slot-4').style.display = 'flex';
           player.ammoClip = player.maxClip * 2; player.ammoReserve = Math.max(0, player.ammoReserve - player.maxClip);
-          showToast("📦 공중 보급 지원: 판저파우스트 & 시작 탄약 2배 장착 완료!");
+          showToast("[AD] 공중 보급 지원: 판저파우스트 & 시작 탄약 2배 장착 완료!");
       }
       is2xScrapActive = use2xScrap;
       if (is2xScrapActive) {
-          showToast("💰 스크랩 2배 버프 활성화: 3분간 획득량 2배!");
+          showToast("[AD] 스크랩 2배 버프 활성화: 3분간 획득량 2배!");
           buffTimeLeft = 180; // 3분
           const buffDisplay = document.getElementById('buff-timer-display');
           buffDisplay.style.display = 'block';
@@ -1088,13 +1112,13 @@
               buffTimeLeft--;
               let m = Math.floor(buffTimeLeft / 60);
               let s = buffTimeLeft % 60;
-              buffDisplay.innerText = `🔥 2X ${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+              buffDisplay.innerText = `[BUFF] 2X ${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
               
               if(buffTimeLeft <= 0) {
                   clearInterval(buffTimerInterval);
                   is2xScrapActive = false;
                   buffDisplay.style.display = 'none';
-                  showToast("보급선 버프 종료: 스크랩 배율 정상화");
+                  showToast("[SYSTEM] 보급선 버프 종료: 스크랩 배율 정상화");
               }
           }, 1000);
       } else {
@@ -1113,9 +1137,9 @@
         const startTotalSecs = (15 * 3600) + (30 * 60) + inGameTimeSeconds; const h = Math.floor(startTotalSecs / 3600) % 24; const m = Math.floor(startTotalSecs / 60) % 60; const s = startTotalSecs % 60; document.getElementById('time-display').innerText = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
         updateHUD(); // timer update
 
-        if (gameState === 'ATOMIC_WAVE') { let timeLeft = atomicWaveTimer - realTimeSeconds; if (timeLeft <= 0) { triggerEnding('ATOMIC'); } else { document.getElementById('status-display').innerText = `☢️ 핵 가동: ${timeLeft}초 생존`; document.getElementById('status-display').style.color = "#00ffaa"; let spawnCount = isHardMode ? 12 : 6; for(let i=0; i<spawnCount; i++) { const sp = spawnPoints[Math.floor(Math.random() * spawnPoints.length)]; spawnEnemy(sp.x + (Math.random()-0.5)*4, sp.z + (Math.random()-0.5)*4); } } }
-        if (gameState === 'SUPER_HARD') { document.getElementById('status-display').innerText = "🔥 무한 모드 🔥"; document.getElementById('status-display').style.color = "#ff0000"; if (realTimeSeconds % 2 === 0) { for(let i=0; i<10; i++) { const sp = spawnPoints[Math.floor(Math.random() * spawnPoints.length)]; spawnEnemy(sp.x + (Math.random()-0.5)*4, sp.z + (Math.random()-0.5)*4); } } }
-        if (gameState === 'BUNKER' && realTimeSeconds === BOSS_START_TIME - 10) { gameState = 'FINAL_WAVE'; showToast("[SYSTEM] 최후의 방어선 붕괴! 대비하라!"); document.getElementById('status-display').innerText = "🚨 벙커 붕괴 임박"; document.getElementById('status-display').style.color = "#e74c3c"; }
+        if (gameState === 'ATOMIC_WAVE') { let timeLeft = atomicWaveTimer - realTimeSeconds; if (timeLeft <= 0) { triggerEnding('ATOMIC'); } else { document.getElementById('status-display').innerText = `[DANGER] 핵 가동: ${timeLeft}초 생존`; document.getElementById('status-display').style.color = "#00ffaa"; let spawnCount = isHardMode ? 12 : 6; for(let i=0; i<spawnCount; i++) { const sp = spawnPoints[Math.floor(Math.random() * spawnPoints.length)]; spawnEnemy(sp.x + (Math.random()-0.5)*4, sp.z + (Math.random()-0.5)*4); } } }
+        if (gameState === 'SUPER_HARD') { document.getElementById('status-display').innerText = "[ENDLESS] 무한 모드"; document.getElementById('status-display').style.color = "#ff0000"; if (realTimeSeconds % 2 === 0) { for(let i=0; i<10; i++) { const sp = spawnPoints[Math.floor(Math.random() * spawnPoints.length)]; spawnEnemy(sp.x + (Math.random()-0.5)*4, sp.z + (Math.random()-0.5)*4); } } }
+        if (gameState === 'BUNKER' && realTimeSeconds === BOSS_START_TIME - 10) { gameState = 'FINAL_WAVE'; showToast("[SYSTEM] 최후의 방어선 붕괴! 대비하라!"); document.getElementById('status-display').innerText = "[WARNING] 벙커 붕괴 임박"; document.getElementById('status-display').style.color = "#e74c3c"; }
         if (gameState === 'FINAL_WAVE' && realTimeSeconds < BOSS_START_TIME) { let rushCount = isHardMode ? 10 : 3; for(let i=0; i<rushCount; i++) { const sp = spawnPoints[Math.floor(Math.random() * spawnPoints.length)]; spawnEnemy(sp.x + (Math.random()-0.5)*4, sp.z + (Math.random()-0.5)*4); } }
         if (gameState === 'FINAL_WAVE' && realTimeSeconds === BOSS_START_TIME) { triggerFinalBombing(); }
         if (gameState === 'BUNKER') {
@@ -1157,11 +1181,11 @@
 
       if (isSuperHard) {
           if (realTimeSeconds > rec.long_SUPER_HARD) { rec.long_SUPER_HARD = realTimeSeconds; isNewRecord = true; }
-          desc.innerText = `생존 시간: ${timeStr} ${isNewRecord ? '(🔥최고 기록 경신!)' : ''}`;
+          desc.innerText = `생존 시간: ${timeStr} ${isNewRecord ? '([NEW RECORD])' : ''}`;
       } else {
           if (['VICTORY', 'ARGENTINA', 'ATOMIC', 'UBOAT'].includes(type)) {
               if (realTimeSeconds < rec['fast_' + type]) { rec['fast_' + type] = realTimeSeconds; isNewRecord = true; }
-              desc.innerText = `클리어 시간: ${timeStr} ${isNewRecord ? '(⏱️최단 기록 경신!)' : ''}`;
+              desc.innerText = `클리어 시간: ${timeStr} ${isNewRecord ? '([NEW RECORD])' : ''}`;
           } else {
               desc.innerText = `${timeStr} 생존 후 전사했습니다.`;
           }
@@ -1185,11 +1209,19 @@
     
     function showCollection() {
        document.getElementById('collection-modal').style.display = 'flex'; const list = document.getElementById('collection-list'); list.innerHTML = '';
-       const allEndings = [ { id: 'DEATH', name: {ko:'K.I.A (전사)', en:'K.I.A', ja:'K.I.A (戦死)'}, hint: {ko:'일반적인 죽음을 맞이하십시오.', en:'Meet a normal death.', ja:'一般的な死を迎えてください。'} }, { id: 'DEFEAT', name: {ko:'EXECUTED (처형)', en:'EXECUTED', ja:'EXECUTED (処刑)'}, hint: {ko:'스탈린 보스전에서 패배하십시오.', en:'Lose in the Stalin boss fight.', ja:'スターリンのボス戦で敗北してください。'} }, { id: 'VICTORY', name: {ko:'SURVIVED (진 엔딩)', en:'SURVIVED (True Ending)', ja:'SURVIVED (真エンディング)'}, hint: {ko:'대원수 스탈린을 처치하고 살아남으십시오.', en:'Defeat Stalin and survive.', ja:'大元帥スターリンを倒して生き残ってください。'} }, { id: 'ARGENTINA', name: {ko:'히든: 아르헨티나 도주', en:'Hidden: Escape to Argentina', ja:'隠し: アルゼンチン逃亡'}, hint: {ko:'??? (히든 엔딩)', en:'??? (Hidden Ending)', ja:'??? (隠しエンディング)'} }, { id: 'ATOMIC', name: {ko:'히든: 원자로', en:'Hidden: Atomic Reactor', ja:'隠し: 原子炉'}, hint: {ko:'??? (히든 엔딩)', en:'??? (Hidden Ending)', ja:'??? (隠しエンディング)'} }, { id: 'UBOAT', name: {ko:'히든: U-보트', en:'Hidden: U-Boat', ja:'隠し: Uボート'}, hint: {ko:'??? (히든 엔딩)', en:'??? (Hidden Ending)', ja:'??? (隠しエンディング)'} } ];
-       document.getElementById('collection-count').innerText = `${collectedEndings.length}/6 달성`;
-       allEndings.forEach(e => { const div = document.createElement('div'); div.style.marginBottom = '10px'; div.style.padding = '10px'; div.style.background = 'rgba(255,255,255,0.1)'; div.style.borderRadius = '5px'; if (collectedEndings.includes(e.id)) { div.innerHTML = `<span style="color:#2ecc71;font-weight:bold;">[해금] ${e.name[currentLang]}</span>`; } else { div.innerHTML = `<span style="color:#e74c3c;font-weight:bold;">[미해금]</span> <span style="color:#aaa;">${e.hint[currentLang]}</span>`; } list.appendChild(div); });
+       const t = i18n[currentLang];
+       const allEndings = [ { id: 'DEATH', name: {ko:'K.I.A (전사)', en:'K.I.A', ja:'K.I.A (戦死)'}, hint: {ko:'일반적인 죽음을 맞이하십시오.', en:'Meet a normal death.', ja:'一般的な死を迎えてください。'} }, { id: 'DEFEAT', name: {ko:'EXECUTED (처형)', en:'EXECUTED', ja:'EXECUTED (処刑)'}, hint: {ko:'스탈린 보스전에서 패배하십시오.', en:'Lose in the Stalin boss fight.', ja:'スターリンのボス戦で敗北してください。'} }, { id: 'VICTORY', name: {ko:'SURVIVED (진 엔딩)', en:'SURVIVED (True Ending)', ja:'SURVIVED (真エンディング)'}, hint: {ko:'대원수 스탈린을 처치하고 살아남으십시오.', en:'Defeat Stalin and survive.', ja:'大元帥スターリンを倒して生き残ってください。'} }, { id: 'ARGENTINA', name: {ko:'[HIDDEN] 아르헨티나 도주', en:'[HIDDEN] Escape to Argentina', ja:'[HIDDEN] アルゼンチン逃亡'}, hint: {ko:'??? (히든 엔딩)', en:'??? (Hidden Ending)', ja:'??? (隠しエンディング)'} }, { id: 'ATOMIC', name: {ko:'[HIDDEN] 원자로', en:'[HIDDEN] Atomic Reactor', ja:'[HIDDEN] 原子炉'}, hint: {ko:'??? (히든 엔딩)', en:'??? (Hidden Ending)', ja:'??? (隠しエンディング)'} }, { id: 'UBOAT', name: {ko:'[HIDDEN] U-보트', en:'[HIDDEN] U-Boat', ja:'[HIDDEN] Uボート'}, hint: {ko:'??? (히든 엔딩)', en:'??? (Hidden Ending)', ja:'??? (隠しエンディング)'} } ];
+       document.getElementById('collection-count').innerText = `${collectedEndings.length}/6`;
+       
+       allEndings.forEach(e => { const div = document.createElement('div'); div.style.marginBottom = '10px'; div.style.padding = '10px'; div.style.background = 'rgba(255,255,255,0.1)'; div.style.borderRadius = '5px'; if (collectedEndings.includes(e.id)) { div.innerHTML = `<span style="color:#2ecc71;font-weight:bold;">[UNLOCKED] ${e.name[currentLang]}</span>`; } else { div.innerHTML = `<span style="color:#e74c3c;font-weight:bold;">[LOCKED]</span> <span style="color:#aaa;">${e.hint[currentLang]}</span>`; } list.appendChild(div); });
+       
        let rec = safeGetItem('myBunkerRecords', { fast_VICTORY: 9999, fast_ARGENTINA: 9999, fast_ATOMIC: 9999, fast_UBOAT: 9999, long_SUPER_HARD: 0 }); const formatT = (s) => s === 9999 ? "--:--" : `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
-       let recHtml = `<div style="margin-top:15px; padding:10px; background:rgba(0,0,0,0.6); border:1px solid #f39c12; border-radius:5px;"><h3 style="color:#f1c40f; text-align:center; font-size:14px; margin-bottom:8px;">🏆 스피드런 & 생존 랭킹 기록</h3><ul style="list-style:none; padding:0; color:#ddd; font-size:12px; line-height:1.5;"><li>진 엔딩 최단 클리어: <span style="color:#2ecc71">${formatT(rec.fast_VICTORY)}</span></li><li>아르헨티나 도주 최단: <span style="color:#2ecc71">${formatT(rec.fast_ARGENTINA)}</span></li><li>원자로 생존 최단: <span style="color:#2ecc71">${formatT(rec.fast_ATOMIC)}</span></li><li>U-보트 탈출 최단: <span style="color:#2ecc71">${formatT(rec.fast_UBOAT)}</span></li><li><span style="color:#e74c3c">슈퍼 하드 최장 생존:</span> <span style="color:#2ecc71">${formatT(rec.long_SUPER_HARD)}</span></li></ul></div>`; list.innerHTML += recHtml;
+       
+       const getRankName = (id, defaultName) => collectedEndings.includes(id) ? defaultName : t.hidden;
+       const getRankTime = (id, rawTime) => collectedEndings.includes(id) ? formatT(rawTime) : "--:--";
+
+       let recHtml = `<div style="margin-top:15px; padding:10px; background:rgba(0,0,0,0.6); border:1px solid #f39c12; border-radius:5px;"><h3 style="color:#f1c40f; text-align:center; font-size:14px; margin-bottom:8px;">${t.rankTitle}</h3><ul style="list-style:none; padding:0; color:#ddd; font-size:12px; line-height:1.5;"><li>${t.rankVic}: <span style="color:#2ecc71">${formatT(rec.fast_VICTORY)}</span></li><li>${getRankName('ARGENTINA', t.rankArg)}: <span style="color:#2ecc71">${getRankTime('ARGENTINA', rec.fast_ARGENTINA)}</span></li><li>${getRankName('ATOMIC', t.rankAto)}: <span style="color:#2ecc71">${getRankTime('ATOMIC', rec.fast_ATOMIC)}</span></li><li>${getRankName('UBOAT', t.rankUbo)}: <span style="color:#2ecc71">${getRankTime('UBOAT', rec.fast_UBOAT)}</span></li><li><span style="color:#e74c3c">${t.rankSH}:</span> <span style="color:#2ecc71">${formatT(rec.long_SUPER_HARD)}</span></li></ul></div>`; list.innerHTML += recHtml;
+       
        if (collectedEndings.length >= 6) document.getElementById('super-hard-container').style.display = 'block'; else document.getElementById('super-hard-container').style.display = 'none';
     }
 
