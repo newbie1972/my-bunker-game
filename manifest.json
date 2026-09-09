@@ -1,0 +1,20 @@
+{
+  "name": "나의 벙커",
+  "short_name": "나의 벙커",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "data:[omitted-by-pwabuilder]",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ],
+  "id": "my-bunker",
+  "description": "나의 벙커 생존 디펜스 게임",
+  "start_url": "https://newbie1972.github.io/my-bunker-game/",
+  "scope": "/my-bunker-game/",
+  "lang": "en"
+}
