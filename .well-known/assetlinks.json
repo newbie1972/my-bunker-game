@@ -1,0 +1,10 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.mbfg.mybunker",
+    "sha256_cert_fingerprints": [
+      "78:55:8A:1C:90:33:A4:79:72:2C:CC:42:50:C8:8C:DD:8D:54:EA:01:8A:2F:29:BC:15:56:5C:B2:2B:A7:8B:C1"
+    ]
+  }
+}]
