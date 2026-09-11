@@ -21,7 +21,7 @@
   ],
 "id": "com.mbfg.mybunker",
   "description": "나의 벙커 생존 디펜스 게임",
-  "start_url": "https://newbie1972.github.io/my-bunker-game/",
-  "scope": "/my-bunker-game/",
+"start_url": "https://newbie1972.github.io/my-bunker-game/",
+    "scope": "https://newbie1972.github.io/my-bunker-game/",
   "lang": "en"
 }
