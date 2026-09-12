@@ -11,6 +11,7 @@
   <meta name="theme-color" content="#000000">
   
   <title>나의 벙커 (My Bunker) - Phase 16 (Telemetry & Mobile Optimized)</title>
+  
   <style>
     /* 글로벌 터치 잠금은 유지하되, UI 모달창에서는 풀기 위해 구조 조정 */
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
@@ -224,6 +225,19 @@
     }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <!-- [★ 상업용 광고 전환 안내 ★] -->
+  <!-- 나중에 정식 출시할 때 아래 'ca-pub-3940256099942544'를 본인의 실제 퍼블리셔 ID로 바꾸고, data-adbreak-test="on"을 지우기만 하면 됩니다. -->
+  <script async
+    data-ad-client="ca-pub-3940256099942544" 
+    data-adbreak-test="on"
+    data-ad-frequency-hint="30s"
+    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js">
+  </script>
+  <script>
+    window.adsbygoogle = window.adsbygoogle || [];
+    var adBreak = function(o) { adsbygoogle.push(o); };
+  </script>
 </head>
 <body>
 
@@ -665,23 +679,39 @@
         scrapEl.parentElement.classList.remove('scrap-pop'); void scrapEl.parentElement.offsetWidth; scrapEl.parentElement.classList.add('scrap-pop');
     }
 
-    // --- [14차 광고 시뮬레이터 브릿지] ---
+    // --- [실제 구글 H5 광고 연동 브릿지] ---
     function showRewardAd(onSuccess, onCancel) {
-        const adModal = document.getElementById('ad-modal');
-        const adTimerEl = document.getElementById('ad-timer');
-        adModal.style.display = 'flex';
-        let timeLeft = 3; adTimerEl.innerText = timeLeft;
-        let pState = gameState;
-        if(pState !== 'START' && pState !== 'ENDING') gameState = 'AD_PLAYING';
+        // 광고 차단(AdBlock) 환경 또는 로컬 에러 시 게임이 멈추지 않도록 예외 처리
+        if (typeof adBreak !== 'function') {
+            console.warn("광고 SDK가 로드되지 않았습니다. 임시 승인 처리합니다.");
+            if (onSuccess) onSuccess();
+            return;
+        }
 
-        const interval = setInterval(() => {
-            timeLeft--; adTimerEl.innerText = timeLeft;
-            if(timeLeft <= 0) {
-                clearInterval(interval); adModal.style.display = 'none';
-                if(gameState === 'AD_PLAYING') gameState = pState;
-                if(onSuccess) onSuccess();
+        let pState = gameState;
+        if (pState !== 'START' && pState !== 'ENDING') gameState = 'AD_PLAYING';
+
+        adBreak({
+            type: 'reward',
+            name: 'bunker_reward_item',
+            beforeReward: (showAdFn) => {
+                // 광고 재생 중 게임 BGM/SFX 일시 정지
+                if (audioCtx && audioCtx.state === 'running') audioCtx.suspend();
+                showAdFn();
+            },
+            adDismissed: () => {
+                // 유저가 광고를 끝까지 보지 않고 닫았을 때 (보상 X)
+                if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+                if (gameState === 'AD_PLAYING') gameState = pState;
+                if (onCancel) onCancel();
+            },
+            adViewed: () => {
+                // 유저가 광고 시청을 완료했을 때 (보상 지급)
+                if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+                if (gameState === 'AD_PLAYING') gameState = pState;
+                if (onSuccess) onSuccess();
             }
-        }, 1000);
+        });
     }
 
     // [광고 보상] 럭키 박스 UI & 로직
@@ -834,6 +864,7 @@
       return { group: g, torso, armL, armR, legL, legR, weaponMount: weaponMount };
     }
     const spawnPoints = [ {x:0, z:-18}, {x:0, z:18}, {x:18, z:0}, {x:-18, z:0} ];
+
     function spawnEnemy(x, z) { if (enemies.length >= MAX_ENEMIES || (gameState !== 'BUNKER' && gameState !== 'FINAL_WAVE' && gameState !== 'BOSS' && gameState !== 'ATOMIC_WAVE' && gameState !== 'SUPER_HARD')) return; let sovietChance = isHardMode ? 0.5 : 0.15; if (!isHardMode && !isSuperHard) { if (realTimeSeconds < 45) sovietChance = 0.0; else if (realTimeSeconds < 100) sovietChance = 0.15; else if (realTimeSeconds < 140) sovietChance = 0.30; else sovietChance = 0.80; } let isSoviet = isSuperHard ? true : (Math.random() < sovietChance); const rig = createHumanoidEnemy(isSoviet); rig.group.position.set(x, 1.0, z); enemyGroup.add(rig.group); enemies.push({ rig: rig, group: rig.group, hp: 100, vy: 0, lastShoot: 0, lastDig: 0, isGrounded: false, walkTime: Math.random()*10, isSoviet: isSoviet }); }
     function flashEnemyColor(meshes) { if(!meshes || meshes.length === 0) return; meshes.forEach(m => { if(m.material && m.material.emissive) { if(m.userData.flashTimeout) clearTimeout(m.userData.flashTimeout); m.material.emissive.setHex(0xff0000); m.material.emissiveIntensity = 0.8; m.userData.flashTimeout = setTimeout(() => { m.material.emissive.setHex(0x000000); }, 150); } }); }
 
@@ -935,6 +966,7 @@
 
     function triggerJump(e) { if(e) { e.preventDefault(); e.stopPropagation(); } if (!isGameStarted || gameState === 'START' || gameState === 'ENDING' || gameState === 'TRANSITION' || gameState === 'AD_PLAYING' || gameState === 'REVIVE_WAIT') return; if (player.isGrounded) { player.velocityY = 0.22; player.isGrounded = false; } }
     let _moveVec = new THREE.Vector3();
+
     function updatePlayer() {
       if (!isGameStarted || gameState === 'START' || gameState === 'ENDING' || gameState === 'TRANSITION' || gameState === 'AD_PLAYING' || gameState === 'REVIVE_WAIT') return;
       
@@ -965,6 +997,7 @@
     let hitMarkerTimeout; function showHitMarker(isCritical = false) { const hm = document.getElementById('hit-marker'); if (!hm) return; if (isCritical) hm.classList.add('hit-critical'); else hm.classList.remove('hit-critical'); hm.style.opacity = '1'; hm.style.transform = 'translate(-50%, -50%) scale(1.3)'; if (hitMarkerTimeout) clearTimeout(hitMarkerTimeout); hitMarkerTimeout = setTimeout(() => { hm.style.opacity = '0'; hm.style.transform = 'translate(-50%, -50%) scale(1.0)'; }, 150); }
 
     let isPunching = false;
+    
     function triggerPrimaryAction(e) {
       if(e) { e.preventDefault(); e.stopPropagation(); } if (!isGameStarted || gameState === 'START' || gameState === 'ENDING' || gameState === 'TRANSITION' || gameState === 'AD_PLAYING' || gameState === 'REVIVE_WAIT') return; initAudio();
       const rayDir = camera.getWorldDirection(new THREE.Vector3()); const camPos = camera.position.clone(); const hitWall = fastVoxelRaycast(camPos, rayDir, 25); let finalHitPos = hitWall ? hitWall.point : camPos.clone().add(rayDir.clone().multiplyScalar(25));
