@@ -313,7 +313,7 @@
       <span class="icon"><svg viewBox="0 0 24 24"><path d="M4 11v6a2 2 0 0 0 2 2h3.5l1.5-3H13v-3l-2-4H5a1 1 0 0 0-1 1z"/><path d="M11 6h8a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-8z"/></svg></span><span>LUGER</span>
     </div>
     <div class="tool-slot" id="slot-2" onpointerdown="selectTool(2)">
-      <span class="icon"><svg viewBox="0 0 24 24"><path d="M18 10v4a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5V7a2 2 0 0 1 4 0v3h1V6a2 2 0 0 1 4 0v4h1V8a2 2 0 0 1 4 0v2z"/></svg></span><span>FIST</span>
+      <span class="icon"><svg viewBox="0 0 24 24"><path d="M18 10v4a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5V7a2 2 0 0 1 4 0v3h1V6a2 2 0 0 1 4 0v2z"/></svg></span><span>FIST</span>
     </div>
     <div class="tool-slot" id="slot-3" onpointerdown="selectTool(3)">
       <span class="icon"><svg class="icon-stroke" viewBox="0 0 24 24"><path d="M14.531 12.469L3.5 23.5"/><path d="M18.8 8.169a10.985 10.985 0 0 0-3.3-3.669 2.5 2.5 0 0 0-3.5 3.5c1.458 1.034 2.659 2.378 3.5 3.5a2.5 2.5 0 0 0 3.3-3.331z"/></svg></span><span>PICKAXE</span>
@@ -707,9 +707,9 @@
                 // 유저가 광고를 끝까지 보지 않고 닫았을 때 (보상 X)
                 if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
                 if (gameState === 'AD_PLAYING') gameState = pState;
-                if (onCancel) onCancel();
+                if (onCancel) onCancel(); // [BUG FIX] 취소 시 취소 콜백만 정확히 호출하도록 보장
                 
-                // [BUG FIX] 광고 모달이 닫힌 후 키보드 이벤트를 잃어버리는 현상을 방지하기 위해 강제 포커스
+                // [BUG FIX] 광고 모달이 닫힌 후 키보드 이벤트를 잃어버리는 현상(키보드 먹통)을 방지하기 위해 강제 포커스
                 setTimeout(() => {
                     window.focus();
                     if (platformMode === 'PC' && isGameStarted && gameState !== 'START' && gameState !== 'ENDING' && gameState !== 'REVIVE_WAIT') {
@@ -723,7 +723,7 @@
                 if (gameState === 'AD_PLAYING') gameState = pState;
                 if (onSuccess) onSuccess();
                 
-                // [BUG FIX] 광고 모달이 닫힌 후 키보드 이벤트를 잃어버리는 현상을 방지하기 위해 강제 포커스
+                // [BUG FIX] 광고 모달이 닫힌 후 키보드 이벤트를 잃어버리는 현상(키보드 먹통)을 방지하기 위해 강제 포커스
                 setTimeout(() => {
                     window.focus();
                     if (platformMode === 'PC' && isGameStarted && gameState !== 'START' && gameState !== 'ENDING' && gameState !== 'REVIVE_WAIT') {
@@ -1543,25 +1543,44 @@
     document.getElementById('touch-look-zone').addEventListener('touchmove', e=>{ if(!isGameStarted) return; e.stopPropagation(); for(let t of e.changedTouches) { if(t.identifier===touchId) { player.rotY -= (t.clientX-lx)*0.008; player.rotX -= (t.clientY-ly)*0.008; player.rotX = Math.max(-Math.PI/2.2, Math.min(Math.PI/2.2, player.rotX)); lx=t.clientX; ly=t.clientY; } } }, { passive: false });
 
     let cutsceneTimeouts = [];
+    
+    // [BUG FIX] 취소 시 보상을 박탈하도록 로직 완전 분리 개편
     function startGame(mode, hard, superHard = false) {
-      const useAirdrop = document.getElementById('chk-airdrop') ? document.getElementById('chk-airdrop').checked : false;
-      const use2xScrap = document.getElementById('chk-2xscrap') ? document.getElementById('chk-2xscrap').checked : false;
+      const wantAirdrop = document.getElementById('chk-airdrop') ? document.getElementById('chk-airdrop').checked : false;
+      const want2xScrap = document.getElementById('chk-2xscrap') ? document.getElementById('chk-2xscrap').checked : false;
+
+      let earnedAirdrop = false;
+      let earned2xScrap = false;
 
       const doStart = () => { 
           const hasSeenIntro = safeGetItem('myBunkerHasSeenIntro', false); 
-          if (!hasSeenIntro && !superHard) { playIntroCutscene(mode, hard, superHard, useAirdrop, use2xScrap); } 
-          else { executeGameStart(mode, hard, superHard, useAirdrop, use2xScrap); } 
+          if (!hasSeenIntro && !superHard) { playIntroCutscene(mode, hard, superHard, earnedAirdrop, earned2xScrap); } 
+          else { executeGameStart(mode, hard, superHard, earnedAirdrop, earned2xScrap); } 
       };
 
-      let adQueue = 0;
-      if (useAirdrop) adQueue++;
-      if (use2xScrap) adQueue++;
-
-      const playAds = (count) => {
-          if (count <= 0) { doStart(); return; }
-          showRewardAd(() => playAds(count - 1), () => playAds(count - 1));
+      const checkScrapAd = () => {
+          if (want2xScrap) {
+              showRewardAd(
+                  () => { earned2xScrap = true; doStart(); },
+                  () => { showToast("[취소됨] 스크랩 2배 버프 미적용"); doStart(); }
+              );
+          } else {
+              doStart();
+          }
       };
-      playAds(adQueue);
+
+      const checkAirdropAd = () => {
+          if (wantAirdrop) {
+              showRewardAd(
+                  () => { earnedAirdrop = true; checkScrapAd(); },
+                  () => { showToast("[취소됨] 공중 보급 지원 미적용"); checkScrapAd(); }
+              );
+          } else {
+              checkScrapAd();
+          }
+      };
+
+      checkAirdropAd();
     }
 
     function playIntroCutscene(mode, hard, superHard, useAirdrop, use2xScrap) {
